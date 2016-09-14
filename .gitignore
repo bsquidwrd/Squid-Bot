@@ -1,7 +1,6 @@
 node_modules/*
 *.json
-*.log
-logs
+logs/*
 
 # Python .gitignore info
 # Byte-compiled / optimized / DLL files
