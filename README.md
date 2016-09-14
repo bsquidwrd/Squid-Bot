@@ -23,7 +23,6 @@ You should only need one main configuration file while the rest will be created 
 
 - Python 3.5+
 - Async version of discord.py
-- lxml
 
 ## Thanks
 - [Rapptz](https://github.com/Rapptz) and his amazing work on [Discord.py](https://github.com/Rapptz/discord.py) combined with the code base I used as a template [RoboDanny](https://github.com/Rapptz/RoboDanny)
