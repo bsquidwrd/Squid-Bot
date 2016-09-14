@@ -1,74 +1,104 @@
 from discord.ext import commands
+from discord.ext.commands import Bot
 from datetime import datetime
 import discord
 from .utils import checks
-from .utils.config import Config
+from .utils.data import Data
 
 
 class Gaming:
     """Gaming functions like looking for a game etc."""
 
-
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config('gaming.json', loop=bot.loop, load_later=True)
+        self.data = Data('gaming.db')
+        from .utils.gaming_utils import GamingUtils
+        self.utils = GamingUtils(bot=bot, gaming=self)
 
+    def __unload(self):
+        """Called when the cog is unloaded. Makes sure data is saved correctly"""
+        self.data.close_connection()
 
-    async def populate_users(self):
-        if (self.config.get('users')) is None:
-            await self.config.put('users', [])
-            return self.config.get('users')
+    # Events
+    async def on_member_join(self, member):
+        await self.utils.user_add(member)
 
+    async def on_member_remove(self, member):
+        await self.utils.user_remove(member)
 
-    async def get_users_looking(self, formatted=True):
-        users = self.config.get('users')
-        if users is None:
-            users = await self.populate_users()
-        if formatted is False:
-            return users
-
-        if len(users) >= 1:
-            formatted_message = '**The following users are looking for games:**\n'
-            for user in users:
-                u = discord.User(id=user)
-                formatted_message += '{}\n'.format(u.mention)
+    async def on_member_update(self, before, after):
+        if before.game:
+            member = before
         else:
-            formatted_message = '**There are currently no users looking for games**'
-        return formatted_message
+            member = after
+        if member.game:
+            await self.utils.game_add(member.game)
+    # End Events
 
+    # Commands
+    @commands.command(name='games', pass_context=True)
+    async def list_games(self, ctx, *, game_search_key: str = None):
+        """Get a list of all the games"""
+        if game_search_key:
+            try:
+                game_search_key = int(game_search_key)
+                games = await self.utils.game_find_by_id(game_search_key)
+            except:
+                games = await self.utils.game_find_by_name(game_search_key)
+        else:
+            games = await self.utils.game_get_all()
+        want_to_play_message = 'Want to play a game with people? Type `{}lfg <game number>` to start looking.'.format(ctx.prefix)
+        message_to_send = '{}\n'.format(await self.utils.game_beautify(games))
+        if len(games) >= 1:
+            message_to_send += '\n{}'.format(want_to_play_message)
+        await self.bot.say(message_to_send)
 
     @commands.command(name='lfg', pass_context=True)
-    async def looking_for_game(self, ctx, *, game: str = None):
+    async def looking_for_game(self, ctx, *, game_search_key: str = None):
         """Used when users want to play a game with others"""
-
-        channel = ctx.message.channel
-
-        if game is None:
-            await self.bot.send_message(channel, await self.get_users_looking(formatted=True))
+        games = []
+        if game_search_key:
+            try:
+                game_search_key = int(game_search_key)
+                games = await self.utils.game_find_by_id(game_search_key)
+            except:
+                games = await self.utils.game_find_by_name(game_search_key)
+        if len(games) == 1:
+            game = games[0]
+            if await self.utils.search_user_add(ctx.message.author, game):
+                await self.bot.say("You've been added to the search queue for {}!".format(game['name']))
+        elif len(games) > 1:
+            pass
         else:
-            user = ctx.message.author
-            users = self.config.get('users')
-            if users is None:
-                users = await self.populate_users()
+            formatted_message = 'People looking for games:\n'
+            for user in await self.utils.user_get_all():
+                formatted_message += '{}:\n'.format(user['name'])
+                for item in user:
+                    if item == 'name':
+                        continue
+                    formatted_message += '    {}: {}\n'.format(item, user[item])
+            await self.bot.say(formatted_message)
 
-            if not (user.id in users):
-                users.append(user.id)
-                user = await self.config.put('users', users)
-            await self.bot.send_message(channel, "Your request to play `{}` has been noted...".format(game.title()))
-
+    @commands.command(name='lfgremove', pass_context=True)
+    async def looking_for_game_remove(self, ctx, *, gameID: int = None):
+        """Used when users want to stop looking for a game"""
+        await self.utils.user_remove(ctx.message.author)
+        await self.bot.say('You have been removed from the queue for the game')
 
     @commands.command(name='lfgpurge', pass_context=True, hidden=True)
     @checks.admin_or_permissions()
     async def looking_for_game_purge(self, ctx, *args):
         channel = ctx.message.channel
-        await self.config.put('users', [])
-        await self.bot.send_message(channel, "**Users have been purged**")
+        await self.reset_users()
+        await self.bot.say(':exclamation: **Users have been purged**')
+    # End Commands
 
-
+    # Errors
     @looking_for_game.error
     async def looking_for_game_error(self, error, ctx):
         if type(error) is commands.BadArgument:
             await self.bot.say(error)
+    # End Errors
 
 
 def setup(bot):
