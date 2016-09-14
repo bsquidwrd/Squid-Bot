@@ -1,3 +1,4 @@
+import os
 import json
 import asyncio
 
@@ -6,10 +7,14 @@ class Config:
     """The "database" object. Internally based on ``json``."""
 
     def __init__(self, name, **options):
-        self.name = name
+        config_dir = 'config'
+        if not os.path.isdir(config_dir):
+            os.makedirs(config_dir)
+        self.name = '{}\{}'.format(config_dir, name)
         self.object_hook = options.pop('object_hook', None)
         self.encoder = options.pop('encoder', None)
         self.loop = options.pop('loop', asyncio.get_event_loop())
+        self._db = {}
         if options.pop('load_later', False):
             self.loop.create_task(self.load())
         else:
