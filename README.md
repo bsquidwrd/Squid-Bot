@@ -1,14 +1,13 @@
-## R. Danny
+## Squid Bot
 
 A bot of many talents
 
 ## Running
-
-I would prefer if you don't run an instance of my bot. Just call the join command with an invite URL to have it on your server. The source here is provided for educational purposes.
-
-However...
+_NOTE: If you want to run this yourself, make sure the bot is a "Bot User"_
 
 You should only need one main configuration file while the rest will be created automatically.
+
+[Click here to have the bot added to your server](https://discordapp.com/oauth2/authorize?client_id=225463490813493248&scope=bot&permissions=268692480)
 
 #### credentials.json
 
