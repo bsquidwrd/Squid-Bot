@@ -1,5 +1,4 @@
 ## Squid Bot
-
 A bot of many talents
 
 ## Running
@@ -10,7 +9,6 @@ You should only need one main configuration file while the rest will be created 
 [Click here to have the bot added to your server](https://discordapp.com/oauth2/authorize?client_id=225463490813493248&scope=bot&permissions=268692480)
 
 #### credentials.json
-
 ```json
 {
     "token": "your bot token",
@@ -20,7 +18,6 @@ You should only need one main configuration file while the rest will be created 
 ```
 
 ## Requirements
-
 - Python 3.5+
 - Async version of discord.py
 
