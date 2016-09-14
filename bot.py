@@ -16,9 +16,12 @@ debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
 if not isinstance(debug_mode, bool):
     debug_mode = not (debug_mode.lower() in ['false', 'no'])
 
+github_url = 'https://github.com/bsquidwrd/Squid-Bot'
+
 description = """
 Hello! I am a bot written by bsquidwrd with a backbone from Danny.
-"""
+Find out more on GitHub: {0}
+""".format(github_url)
 
 initial_extensions = [
     'cogs.admin',
@@ -70,7 +73,7 @@ async def on_ready():
     log.info('Logged in as:\nUsername: {0.user.name}\nID: {0.user.id}\nDebug: {1}\n------'.format(bot, str(debug_mode)))
     if not hasattr(bot, 'uptime'):
         bot.uptime = bot_start_time
-    squid_bot_game = discord.Game(name=bot.user.name)
+    squid_bot_game = discord.Game(name=bot.user.name, url=github_url, type=0)
     await bot.change_status(game=squid_bot_game, idle=False)
 
 
@@ -113,7 +116,7 @@ async def do(ctx, times : int, *, command):
 @bot.command()
 async def changelog():
     """Gives a URL to the current bot changelog."""
-    await bot.say('https://github.com/bsquidwrd/Squid-Bot')
+    await bot.say(github_url)
 
 
 @bot.command(hidden=True)
