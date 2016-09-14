@@ -25,4 +25,4 @@ You should only need one main configuration file while the rest will be created 
 - Async version of discord.py
 
 ## Thanks
-- [Rapptz](https://github.com/Rapptz) and his amazing work on [Discord.py](https://github.com/Rapptz/discord.py) combined with the code base I used as a template [RoboDanny](https://github.com/Rapptz/RoboDanny)
+- [Rapptz](https://github.com/Rapptz) and his amazing work on [Discord.py](https://github.com/Rapptz/discord.py) combined with the code I used as a template [RoboDanny](https://github.com/Rapptz/RoboDanny)
