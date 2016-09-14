@@ -61,7 +61,6 @@ class Gaming:
     @checks.admin_or_permissions()
     async def looking_for_game_purge(self, ctx, *args):
         channel = ctx.message.channel
-        # await self.config.remove('users')
         await self.config.put('users', [])
         await self.bot.send_message(channel, "**Users have been purged**")
 
