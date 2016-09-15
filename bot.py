@@ -27,7 +27,6 @@ For the nitty gritty, checkout my GitHub: {0}
 initial_extensions = [
     'cogs.admin',
     'cogs.gaming',
-    # 'cogs.buttons',
 ]
 
 discord_logger = logging.getLogger('discord')
