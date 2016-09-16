@@ -1,4 +1,4 @@
-## Squid Bot
+## Squid Bot [![Build Status](https://travis-ci.org/bsquidwrd/SPN-RPG.svg?branch=master)](https://travis-ci.org/bsquidwrd/SPN-RPG)
 A bot of many talents
 
 ## Running
