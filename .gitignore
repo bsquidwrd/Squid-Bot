@@ -5,7 +5,6 @@ node_modules/*
 data/*
 logs/*
 config/*
-**/migrations/
 
 # Python .gitignore info
 # Byte-compiled / optimized / DLL files
