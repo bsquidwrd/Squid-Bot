@@ -1,1 +1,3 @@
-web: gunicorn web.web.wsgi --log-file -
+urgentworker: python manage.py migrate
+web: gunicorn web.wsgi --log-file -
+worker: sh worker.sh
