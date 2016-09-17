@@ -19,11 +19,12 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.views import static
 
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-]
-
-if not settings.DEBUG:
-    urlpatterns.append(
+if settings.DEBUG:
+    urlpatterns = [
+        url(r'^admin/', admin.site.urls),
+    ]
+else:
+    urlpatterns = [
+        url(r'^admin/', admin.site.urls),
         url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT})
-    )
+    ]
