@@ -35,6 +35,18 @@ if DEBUG:
             'NAME': os.path.join(BASE_DIR, 'squidbot.db'),
         }
     }
+elif 'TRAVIS' in os.environ:
+    ALLOWED_HOSTS = []
+    DATABASES = {
+        'default': {
+            'ENGINE':   'django.db.backends.postgresql_psycopg2',
+            'NAME':     'travisci',
+            'USER':     'postgres',
+            'PASSWORD': '',
+            'HOST':     'localhost',
+            'PORT':     '',
+        }
+    }
 else:
     ALLOWED_HOSTS = [
         '*.bsquid.io',
