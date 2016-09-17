@@ -23,7 +23,7 @@ def get_patterns():
     patterns = [
         url(r'^admin/', admin.site.urls)
     ]
-    if settings.DEBUG:
+    if not settings.DEBUG:
         patterns.append(url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}))
     return patterns
 
