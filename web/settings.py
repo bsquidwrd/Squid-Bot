@@ -31,7 +31,7 @@ else:
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 if DEBUG or 'TRAVIS' in os.environ:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [
         '127.0.0.1',
@@ -39,6 +39,7 @@ else:
         '*.bsquid.io',
         '*.bsquidwrd.com',
         'quiet-refuge-52429.herokuapp.com',
+        '*'
     ]
 
 if 'TRAVIS' in os.environ:
