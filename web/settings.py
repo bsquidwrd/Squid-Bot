@@ -27,16 +27,15 @@ DEBUG = os.getenv('SQUID_BOT_DEBUG_MODE', True)
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if DEBUG:
+if DEBUG or 'TRAVIS' in os.environ:
     ALLOWED_HOSTS = []
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'squidbot.db'),
-        }
-    }
-elif 'TRAVIS' in os.environ:
-    ALLOWED_HOSTS = []
+else:
+    ALLOWED_HOSTS = [
+        '*.bsquid.io',
+        '*.bsquidwrd.com'
+    ]
+
+if 'TRAVIS' in os.environ:
     DATABASES = {
         'default': {
             'ENGINE':   'django.db.backends.postgresql_psycopg2',
@@ -48,10 +47,6 @@ elif 'TRAVIS' in os.environ:
         }
     }
 else:
-    ALLOWED_HOSTS = [
-        '*.bsquid.io',
-        '*.bsquidwrd.com'
-    ]
     DATABASES = {
         'default': {
             'ENGINE': os.getenv('SQUID_BOT_DATABASE_ENGINE', None),
