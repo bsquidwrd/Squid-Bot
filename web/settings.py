@@ -34,8 +34,11 @@ if DEBUG or 'TRAVIS' in os.environ:
     ALLOWED_HOSTS = []
 else:
     ALLOWED_HOSTS = [
+        '127.0.0.1',
+        'localhost',
         '*.bsquid.io',
-        '*.bsquidwrd.com'
+        '*.bsquidwrd.com',
+        'quiet-refuge-52429.herokuapp.com',
     ]
 
 if 'TRAVIS' in os.environ:
