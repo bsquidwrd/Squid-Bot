@@ -308,8 +308,8 @@ class Gaming(GamingUtils):
         if msg:
             game_searches.update(cancelled=True)
             for server in self.bot.servers:
-                purged_message = ':exclamation: **All active Searches have been purged by {} at {}**'.format(ctx.message.author.name, timezone.now())
-                await self.bot.send_message(server.default_channel, purged_message)
+                cancelled_message = ':exclamation: **All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now())
+                await self.bot.send_message(server.default_channel, cancelled_message)
 
     @commands.command(name='halp', pass_context=True, hidden=True)
     @checks.is_owner()
