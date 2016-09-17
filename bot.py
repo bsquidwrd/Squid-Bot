@@ -115,6 +115,7 @@ async def restart():
     """Restarts the bot"""
     await bot.say(':wave:')
     await bot.close()
+    await bot.loop.stop()
 
 def load_credentials():
     return credentials.load_credentials()
@@ -123,8 +124,7 @@ if __name__ == '__main__':
     if any('debug' in arg.lower() for arg in sys.argv):
         bot.command_prefix = '$'
 
-    credentials = load_credentials()
-    bot.client_id = credentials['client_id']
+    bot.client_id = os.environ['SQUID_BOT_CLIENT_ID']
     bot.commands_used = Counter()
     for extension in initial_extensions:
         try:
@@ -132,7 +132,7 @@ if __name__ == '__main__':
         except Exception as e:
             print('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
 
-    bot.run(credentials['token'])
+    bot.run(os.environ['SQUID_BOT_TOKEN'])
     handlers = log.handlers[:]
     for hdlr in handlers:
         hdlr.close()
