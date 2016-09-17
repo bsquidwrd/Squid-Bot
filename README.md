@@ -1,4 +1,4 @@
-## Squid Bot
+## Squid Bot [![Build Status](https://travis-ci.com/bsquidwrd/Squid-Bot.svg?token=uo4hEPkTYVSRzimGpyao&branch=master)](https://travis-ci.com/bsquidwrd/Squid-Bot)
 A bot of many talents
 
 ## Running
@@ -8,14 +8,21 @@ I'd prefer if only my instance was running so the bot and users don't get confus
 
 [Click here to have the bot added to your server](https://discordapp.com/oauth2/authorize?client_id=225463490813493248&scope=bot&permissions=268692480)
 
-#### credentials.json
-```json
-{
-    "token": "your bot token",
-    "client_id": "your client_id",
-    "owner_id": "your user discord id"
-}
-```
+#### Environmental Variables
+- `SQUID_BOT_DEBUG_MODE:` Should the bot be in Debug mode
+- `SQUID_BOT_CLIENT_ID:` The Client ID assigned by Discord
+- `SQUID_BOT_TOKEN:` The token used by Discord to sign in with your bot
+- `SQUID_BOT_OWNER_ID:` The Discord ID for the owner of the bot
+- `SQUID_BOT_EMAIL_PASSWORD:` SMTP Email user password
+- `DJANGO_SETTINGS_MODULE:` The module that has django settings
+- `SQUID_BOT_DJANGO_SECRET:` Unique 'token' for django
+- `SQUID_BOT_DATABASE_ENGINE:` Which django database engine to use
+- `SQUID_BOT_DATABASE_NAME:` Name of the database django will use
+- `SQUID_BOT_DATABASE_HOST:` The host django will use for the database
+- `SQUID_BOT_DATABASE_PORT:` The port for accessing the database
+- `SQUID_BOT_DATABASE_USERNAME:` The username for the django database
+- `SQUID_BOT_DATABASE_PASSWORD:` The password for the django database
+
 
 ## Requirements
 - Python 3.5+
