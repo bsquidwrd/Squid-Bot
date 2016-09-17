@@ -70,6 +70,8 @@ DEFAULT_FROM_EMAIL = SERVER_EMAIL
 # Used for sending emails
 EMAIL_SUBJECT_PREFIX = '[Squid-Bot] '
 
+APPEND_SLASH = True
+
 # Application definition
 
 INSTALLED_APPS = [
