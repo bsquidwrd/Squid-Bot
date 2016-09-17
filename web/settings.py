@@ -53,7 +53,7 @@ else:
             'NAME': os.getenv('SQUID_BOT_DATABASE_NAME', 'squidbot.db'),
             'HOST': os.getenv('SQUID_BOT_DATABASE_HOST', None),
             'USER': os.getenv('SQUID_BOT_DATABASE_USERNAME', None),
-            'PASSWORD': os.getenv('SQUID_BOT_DATABASE_PASSWORD', None)
+            'PASSWORD': os.getenv('SQUID_BOT_DATABASE_PASSWORD', None),
             'PORT': os.getenv('SQUID_BOT_DATABASE_PORT', None)
         }
     }
