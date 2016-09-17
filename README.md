@@ -19,6 +19,7 @@ I'd prefer if only my instance was running so the bot and users don't get confus
 - `SQUID_BOT_DATABASE_ENGINE:` Which django database engine to use
 - `SQUID_BOT_DATABASE_NAME:` Name of the database django will use
 - `SQUID_BOT_DATABASE_HOST:` The host django will use for the database
+- `SQUID_BOT_DATABASE_PORT:` The port for accessing the database
 - `SQUID_BOT_DATABASE_USERNAME:` The username for the django database
 - `SQUID_BOT_DATABASE_PASSWORD:` The password for the django database
 
