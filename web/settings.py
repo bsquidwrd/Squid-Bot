@@ -22,7 +22,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('SQUID_BOT_DJANGO_SECRET', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+if debug_mode.lower() = 'false':
+    DEBUG = False
+else:
+    DEBUG = True
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
