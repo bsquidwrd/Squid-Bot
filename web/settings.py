@@ -23,7 +23,7 @@ SECRET_KEY = os.getenv('SQUID_BOT_DJANGO_SECRET', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
-if debug_mode.lower() = 'false':
+if debug_mode.lower() == 'false':
     DEBUG = False
 else:
     DEBUG = True
