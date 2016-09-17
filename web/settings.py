@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
@@ -23,16 +22,23 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('SQUID_BOT_DJANGO_SECRET', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+if debug_mode.lower() == 'false':
+    DEBUG = False
+else:
+    DEBUG = True
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 if DEBUG or 'TRAVIS' in os.environ:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [
+        '127.0.0.1',
+        'localhost',
         '*.bsquid.io',
-        '*.bsquidwrd.com'
+        '*.bsquidwrd.com',
+        'quiet-refuge-52429.herokuapp.com'
     ]
 
 if 'TRAVIS' in os.environ:
@@ -70,6 +76,8 @@ DEFAULT_FROM_EMAIL = SERVER_EMAIL
 
 # Used for sending emails
 EMAIL_SUBJECT_PREFIX = '[Squid-Bot] '
+
+APPEND_SLASH = True
 
 # Application definition
 
@@ -149,5 +157,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
+
+if DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+else:
+    STATIC_ROOT = '/app/static/'
 
 STATIC_URL = '/static/'
