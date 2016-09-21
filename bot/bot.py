@@ -1,6 +1,5 @@
 from discord.ext import commands
 import discord
-import credentials
 from cogs.utils import checks
 import datetime, re
 import asyncio
@@ -12,7 +11,7 @@ import os
 from collections import Counter
 
 
-debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', 'true')
 if not isinstance(debug_mode, bool):
     # SQUID_BOT_DEBUG_MODE can be set to either 'false' or 'no'. Case insensitive
     debug_mode = not (debug_mode.lower() in ['false', 'no'])
@@ -116,9 +115,6 @@ async def restart():
     await bot.say(':wave:')
     await bot.close()
     await bot.loop.stop()
-
-def load_credentials():
-    return credentials.load_credentials()
 
 if __name__ == '__main__':
     if any('debug' in arg.lower() for arg in sys.argv):

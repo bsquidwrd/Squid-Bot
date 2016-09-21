@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web.settings')
 django.setup()
 from django.utils import timezone
 from django.db import models
-from squidbot.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
+from website.gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
 
 DISCORD_MSG_CHAR_LIMIT = 2000
 

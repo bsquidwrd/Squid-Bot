@@ -1,4 +1,4 @@
 while :
     do
-        python bot.py
+        python bot/bot.py
     done
