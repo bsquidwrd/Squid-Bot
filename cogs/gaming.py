@@ -288,7 +288,7 @@ class Gaming(GamingUtils):
                 no_game_searches = True
 
         if game_search_cancelled:
-            await self.bot.say("You've stopped searching for the selected games!")
+            await self.bot.say("You've stopped searching for the following game(s):\n{}".format(await self.game_beautify(games))
         elif time_ran_out:
             await self.bot.say('Whoops... looks like your time ran out {}. Please re-run the command and try again.'.format(ctx.message.author.mention), delete_after=30)
         elif no_game_searches:
