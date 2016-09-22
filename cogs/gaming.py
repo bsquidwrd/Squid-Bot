@@ -1,8 +1,8 @@
 import os
-import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 from datetime import datetime
+import discord
 from .utils import checks
 from .utils.data import Data
 
@@ -40,7 +40,6 @@ def paginate(content, *, length=DISCORD_MSG_CHAR_LIMIT, reserve=0):
         chunks.append(currentchunk)
 
     return chunks
-
 
 class GamingUtils:
     def __init__(self):
@@ -282,8 +281,6 @@ class Gaming(GamingUtils):
                             game_search_cancelled = True
                     except Exception as e:
                         print(e)
-                else:
-                    time_ran_out = True
             else:
                 no_game_searches = True
 
@@ -310,10 +307,9 @@ class Gaming(GamingUtils):
         msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
         if msg:
             game_searches.update(cancelled=True)
-            for u in game_searches:
-                user = discord.User(id=u.user.user_id)
-                cancelled_message = ':exclamation: **Your game searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now())
-                await self.bot.send_message(user, cancelled_message)
+            for server in self.bot.servers:
+                cancelled_message = ':exclamation: **All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now())
+                await self.bot.send_message(server.default_channel, cancelled_message)
 
     @commands.command(name='halp', pass_context=True, hidden=True)
     @checks.is_owner()

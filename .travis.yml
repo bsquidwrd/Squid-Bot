@@ -23,7 +23,7 @@ before_script:
   - psql -c "CREATE DATABASE travisci;" -U postgres
 
 script:
-  - python website/manage.py migrate --noinput
+  - python manage.py migrate --noinput
 
 notifications:
   email:
