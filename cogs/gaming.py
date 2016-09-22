@@ -94,10 +94,7 @@ class GamingUtils:
 class Gaming(GamingUtils):
     def __init__(self, bot):
         self.bot = bot
-        for server in self.bot.servers:
-            Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
-            for user in server.members:
-                DiscordUser.objects.get_or_create(user_id=user.id, defaults={'name': user.name})
+        self.populate_info()
         super().__init__()
 
     def __unload(self):
@@ -105,6 +102,12 @@ class Gaming(GamingUtils):
         pass
 
     # Class methods
+    def populate_info(self):
+        for server in self.bot.servers:
+            Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
+            for user in server.members:
+                DiscordUser.objects.get_or_create(user_id=user.id, defaults={'name': user.name})
+
     def create_user(self, member):
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})
 
@@ -119,11 +122,15 @@ class Gaming(GamingUtils):
         return (game_search, created)
 
     # Events
+    async def on_ready(self):
+        self.populate_info()
+
     async def on_member_join(self, member):
         self.create_user(member)
 
     async def on_member_remove(self, member):
-        GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now()).update(cancelled=True)
+        # GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now()).update(cancelled=True)
+        pass
 
     async def on_member_update(self, before, after):
         """This is to populate games and users automatically"""
@@ -288,7 +295,7 @@ class Gaming(GamingUtils):
                 no_game_searches = True
 
         if game_search_cancelled:
-            await self.bot.say("You've stopped searching for the following game(s):\n{}".format(await self.game_beautify(games))
+            await self.bot.say("You've stopped searching for the following game(s):\n{}".format(await self.game_beautify(games)))
         elif time_ran_out:
             await self.bot.say('Whoops... looks like your time ran out {}. Please re-run the command and try again.'.format(ctx.message.author.mention), delete_after=30)
         elif no_game_searches:
