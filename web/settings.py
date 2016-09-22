@@ -38,7 +38,6 @@ else:
         'localhost',
         '*.bsquid.io',
         '*.bsquidwrd.com',
-        'quiet-refuge-52429.herokuapp.com'
     ]
 
 if 'TRAVIS' in os.environ:
