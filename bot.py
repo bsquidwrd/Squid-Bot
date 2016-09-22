@@ -69,7 +69,7 @@ async def on_ready():
     log.info('Logged in as:\nUsername: {0.user.name}\nID: {0.user.id}\nDebug: {1}\n------'.format(bot, str(debug_mode)))
     if not hasattr(bot, 'uptime'):
         bot.uptime = bot_start_time
-    squid_bot_game = discord.Game(name=bot.user.name, url=github_url, type=0)
+    squid_bot_game = discord.Game(name=bot.user.name, url='!help', type=0)
     await bot.change_status(game=squid_bot_game, idle=False)
 
 @bot.event
