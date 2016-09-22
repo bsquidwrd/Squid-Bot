@@ -109,7 +109,8 @@ class Gaming(GamingUtils):
                 DiscordUser.objects.get_or_create(user_id=user.id, defaults={'name': user.name})
 
     def create_user(self, member):
-        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})
+        # Returns a DiscordUser object after getting or creating the user
+        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
 
     def create_game_search(self, user, game):
         created = False
@@ -134,7 +135,7 @@ class Gaming(GamingUtils):
 
     async def on_member_update(self, before, after):
         """This is to populate games and users automatically"""
-        user, created = self.create_user(after)
+        user = self.create_user(after)
         if before.game:
             member = before
         else:
@@ -170,7 +171,7 @@ class Gaming(GamingUtils):
     @commands.command(name='lfg', pass_context=True)
     async def looking_for_game(self, ctx, *, game_search_key: str = None):
         """Used when users want to play a game with others"""
-        user = self.create_user(ctx.message.author)[0]
+        user = self.create_user(ctx.message.author)
         games = [game for game in Game.objects.all()]
 
         game_search = False
@@ -231,7 +232,7 @@ class Gaming(GamingUtils):
     @commands.command(name='lfgstop', pass_context=True)
     async def looking_for_game_remove(self, ctx, *, game_search_key: str = None):
         """Starts searching for a game to play with others"""
-        user = self.create_user(ctx.message.author)[0]
+        user = self.create_user(ctx.message.author)
         games_removed = []
 
         game_search_cancelled = False
