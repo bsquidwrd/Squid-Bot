@@ -10,6 +10,8 @@ import sys
 import os
 from collections import Counter
 
+import web.wsgi
+
 
 debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', 'true')
 if not isinstance(debug_mode, bool):
