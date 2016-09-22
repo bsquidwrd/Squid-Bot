@@ -6,9 +6,7 @@ import discord
 from .utils import checks
 from .utils.data import Data
 
-import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web.settings')
-django.setup()
+import web.wsgi
 from django.utils import timezone
 from django.db import models
 from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
