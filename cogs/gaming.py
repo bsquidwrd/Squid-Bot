@@ -236,6 +236,11 @@ class Gaming(GamingUtils):
                 games = Game.objects.filter(pk=int(game_search_key))
             except:
                 games = Game.objects.filter(name__icontains=game_search_key)
+        else:
+            game_pks = []
+            for search in GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now()):
+                game_pks.append(search.game.pk)
+            games = Game.objects.filter(pk__in=game_pks)
         game_removed = 'All Games'
 
         if games.count() == 1:
