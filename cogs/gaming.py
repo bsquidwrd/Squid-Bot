@@ -130,7 +130,6 @@ class Gaming(GamingUtils):
         self.create_user(member)
 
     async def on_member_remove(self, member):
-        # GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now()).update(cancelled=True)
         pass
 
     async def on_member_update(self, before, after):
