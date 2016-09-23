@@ -43,7 +43,7 @@ class GamingUtils:
     def __init__(self):
         pass
 
-    async def game_beautify(self, games, reserve=0):
+    async def game_beautify(self, games, reserve=0, page=0, available=True):
         """
         Return a message of all games ready for displaying all pretty like
         """
@@ -52,43 +52,16 @@ class GamingUtils:
             if len(games) == 0:
                 games = Game.objects.all()
 
-            formatted_message = '\n**Available games**\n'
+            formatted_message = ''
+            if available:
+                formatted_message += '\n**Available games**\n'
             for game in games:
                 if isinstance(game, GameSearch):
                     game = Game.objects.get(pk=game.pk)
                 formatted_message += '`{0}:` {1}\n'.format(game.pk, game.name)
         except Exception as e:
             pass
-        return paginate(formatted_message, reserve=reserve)[0]
-
-
-    ####################
-    # Search Utilities #
-    ####################
-    async def search_beautify(self, user, game, reserve=0):
-        """
-        Return a message of all user searches ready for displaying all pretty like
-        """
-        # Todo: How to filter all users and games people are searching based on params passed in
-        if users:
-            users = await self.search_user(users)
-        elif games:
-            if len(game) > 1:
-                active_searches = GameSearch.objects.filter(cancelled=False, expire_date__gte=timezone.now())
-                users = active_searches.filter(game__in=[game.pk])
-            else:
-                users = active_searches.filter(game=game, cancelled=False, expire_date__gte=timezone.now())
-
-        if formatted is False:
-            return users
-
-        if len(users) >= 1:
-            formatted_message = '' #'**The following users are looking for games:**\n'
-            for user in users:
-                formatted_message += '{}\n'.format(user.name)
-        else:
-            formatted_message = '**There are currently no users looking for games**'
-        return paginate(formatted_message, reserve=reserve)[0]
+        return paginate(formatted_message, reserve=reserve)[page]
 
 
 class Gaming(GamingUtils):
@@ -114,13 +87,21 @@ class Gaming(GamingUtils):
 
     def create_game_search(self, user, game):
         created = False
-        game_searches = GameSearch.objects.filter(user=user, game=game, expire_date__gte=timezone.now(), cancelled=False)
+        game_searches = self.get_game_searches(user=user, game=game)
         if game_searches.count() >= 1:
             game_search = game_searches[0]
         else:
             game_search = GameSearch.objects.create(user=user, game=game)
             created = True
         return (game_search, created)
+
+    def get_game_searches(self, user=None, game=None):
+        game_searches = GameSearch.objects.filter(cancelled=False, expire_date__gte=timezone.now())
+        if isinstance(user, DiscordUser):
+            game_searches = game_searches.filter(user=user)
+        if isinstance(game, Game):
+            game_searches = game_searches.filter(game=game)
+        return game_searches.order_by('pk')
 
     # Events
     async def on_ready(self):
@@ -151,8 +132,14 @@ class Gaming(GamingUtils):
 
     # Commands
     @commands.command(name='games', pass_context=True)
-    async def list_games(self, ctx, *, game_search_key: str = None):
-        """Get a list of all the games"""
+    async def list_games(self, ctx, *, game_search_key: str = None, page_number: str = None):
+        """Get a list of all the games
+        Example: !games over p2"""
+        page = 0
+        if page_number:
+            if page_number.lower().startswith('p'):
+                page = int(page_number[1::]) - 1
+
         if game_search_key:
             try:
                 game_search_key = int(game_search_key)
@@ -161,23 +148,30 @@ class Gaming(GamingUtils):
                 games = Game.objects.filter(name__icontains=game_search_key)
         else:
             games = Game.objects.all()
-        want_to_play_message = 'Want to play a game with people? Type `{}lfg <game_number OR game_name>` to start looking.'.format(ctx.prefix)
-        message_to_send = '{}'.format(await self.game_beautify(games))
+        want_to_play_message = 'Want to play a game with people? Type `{}help lfg` to learn how to start searching.'.format(ctx.prefix)
+        message_to_send = '{}'.format(await self.game_beautify(games, page=page))
         if len(games) >= 1:
             message_to_send += '{}'.format(want_to_play_message)
-        await self.bot.say(message_to_send)
+        await self.bot.say(message_to_send, delete_after=30)
+        await self.bot.delete_message(ctx.message)
 
     @commands.command(name='lfg', pass_context=True)
-    async def looking_for_game(self, ctx, *, game_search_key: str = None):
-        """Used when users want to play a game with others"""
+    async def looking_for_game(self, ctx, *, game_search_key: str = None, page_number: str = None):
+        """Used when users want to play a game with others
+        Example: !lfg overwatch"""
         user = self.create_user(ctx.message.author)
         games = [game for game in Game.objects.all()]
+
+        page = 0
+        if page_number:
+            if page_number.lower().startswith('p'):
+                page = int(page_number[1::]) - 1
 
         game_search = False
         created = False
 
         if game_search_key:
-            current_searches = GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now())
+            current_searches = self.get_game_searches(user=user)
             current_searches_games = [search.game for search in current_searches]
             games = []
             try:
@@ -190,13 +184,13 @@ class Gaming(GamingUtils):
                         games.append(game)
         if len(games) == 1:
             game = games[0]
-            game_search, created = self.create_game_search(user, game)
+            game_search, created = self.create_game_search(user, game, pass_created=True)
         else:
             msg = False
-            temp_message = 'Which game did you want to search for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'
-            formatted_games = await self.game_beautify(games, reserve=len(temp_message))
+            temp_message = '{0.message.author.mention}: Which game did you want to search for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'.format(ctx)
+            formatted_games = await self.game_beautify(games, reserve=len(temp_message), page=page)
             final_message = '{}{}'.format(temp_message, formatted_games)
-            await self.bot.say(final_message, delete_after=30)
+            question_message = await self.bot.say(final_message)
             time_ran_out = False
             gameIDs = [game.pk for game in games]
             def check(msg):
@@ -205,7 +199,7 @@ class Gaming(GamingUtils):
                 except:
                     return False
             msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
-            if msg:
+            if isinstance(msg, discord.Message):
                 try:
                     content = msg.content.strip()
                     try:
@@ -218,21 +212,29 @@ class Gaming(GamingUtils):
                         game_search, created = self.create_game_search(user, game)
                 except Exception as e:
                     print(e)
+                await self.bot.delete_message(msg)
+            await self.bot.delete_message(question_message)
 
         if created and game_search:
-            await self.bot.say("You've been added to the search queue for `{0.name}`!".format(game))
+            await self.bot.say("{0.message.author.mention}: You've been added to the search queue for `{1.name}`!".format(ctx, game), delete_after=30)
         elif game_search:
-            await self.bot.say("You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx))
+            await self.bot.say("{1.message.author.mention}: You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx), delete_after=30)
         elif time_ran_out:
-            await self.bot.say('Whoops... looks like your time ran out `{}`. Please re-run the command and try again.'.format(ctx.message.author.mention), delete_after=30)
+            await self.bot.say('Whoops... looks like your time ran out `{0.message.author.mention}`. Please re-run the command and try again.'.format(ctx), delete_after=30)
         else:
-            await self.bot.say("I didn't quite understand your response, please run the command again.")
+            await self.bot.say("{0.message.author.mention}: I didn't quite understand your response, please run the command again.".format(ctx), delete_after=30)
+        await self.bot.delete_message(ctx.message)
 
     @commands.command(name='lfgstop', pass_context=True)
-    async def looking_for_game_remove(self, ctx, *, game_search_key: str = None):
+    async def looking_for_game_remove(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Starts searching for a game to play with others"""
         user = self.create_user(ctx.message.author)
         games_removed = []
+
+        page = 0
+        if page_number:
+            if page_number.lower().startswith('p'):
+                page = int(page_number[1::]) - 1
 
         game_search_cancelled = False
         time_ran_out = False
@@ -245,28 +247,29 @@ class Gaming(GamingUtils):
                 games = Game.objects.filter(name__icontains=game_search_key)
         else:
             game_pks = []
-            for search in GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now()):
+            for search in self.get_game_searches(user=user):
                 game_pks.append(search.game.pk)
-            games = Game.objects.filter(pk__in=game_pks)
+            games = Game.objects.filter(pk__in=game_pks).order_by('pk')
         game_removed = 'All Games'
+        games = games.order_by('pk')
 
         if games.count() == 1:
             game = games[0]
-            game_search = GameSearch.objects.filter(user=user, game=game, cancelled=False, expire_date__gte=timezone.now())
+            game_search = self.get_game_searches(user=user, game=game)
             games_removed = [search.game for search in game_search]
             game_search.update(cancelled=True)
             game_search_cancelled = True
         else:
-            game_searches = GameSearch.objects.filter(user=user, cancelled=False, expire_date__gte=timezone.now())
+            game_searches = self.get_game_searches(user=user)
             games = []
             for game in game_searches:
                 if game.game not in games:
                     games.append(game.game)
             if len(games) >= 1:
-                temp_message = 'Which game would you like to stop searching for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'
-                formatted_games = await self.game_beautify(games)
+                temp_message = '{0.message.author.mention}: Which game would you like to stop searching for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'.format(ctx)
+                formatted_games = await self.game_beautify(games, page=page)
                 final_message = '{}{}'.format(temp_message, formatted_games)
-                await self.bot.say(final_message, delete_after=30)
+                question_message = await self.bot.say(final_message)
                 gameIDs = [game.pk for game in games]
                 def check(msg):
                     try:
@@ -275,7 +278,7 @@ class Gaming(GamingUtils):
                         return False
                 msg = False
                 msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
-                if msg:
+                if isinstance(msg, discord.Message):
                     try:
                         content = msg.content.strip()
                         try:
@@ -285,29 +288,32 @@ class Gaming(GamingUtils):
                             possible_game = Game.objects.filter(name__icontains=game_pk)
                         if possible_game.count() == 1:
                             game = possible_game[0]
-                            game_searches = GameSearch.objects.filter(user=user, game=game, cancelled=False, expire_date__gte=timezone.now())
+                            game_searches = self.get_game_searches(user=user, game=game)
                             game_searches.update(cancelled=True)
                             games_removed = [game]
                             game_search_cancelled = True
                     except Exception as e:
                         print(e)
+                    await self.bot.delete_message(msg)
+                await self.bot.delete_message(question_message)
             else:
                 no_game_searches = True
 
         if game_search_cancelled:
-            await self.bot.say("You've stopped searching for the following game(s):\n{}".format(await self.game_beautify(games)))
+            await self.bot.say("{0.message.author.mention}: You've stopped searching for the following game(s):\n{1}".format(ctx, await self.game_beautify(games_removed, available=False)), delete_after=30)
         elif time_ran_out:
-            await self.bot.say('Whoops... looks like your time ran out {}. Please re-run the command and try again.'.format(ctx.message.author.mention), delete_after=30)
+            await self.bot.say('Whoops... looks like your time ran out {0.message.author.mention}. Please re-run the command and try again.'.format(ctx), delete_after=30)
         elif no_game_searches:
-            await self.bot.say('It doesn\t look like you\'re currently searching for any games.\nIf you would like to start, type {0.prefix}lfg'.format(ctx))
+            await self.bot.say('It doesn\'t look like you\'re currently searching for any games {0.message.author.mention}.\nIf you would like to start, type {0.prefix}lfg'.format(ctx), delete_after=30)
         else:
-            await self.bot.say("I didn't quite understand your response, please run the command again.")
+            await self.bot.say("I didn't quite understand your response {0.message.author.mention}, please run the command again.".format(ctx), delete_after=30)
+        await self.bot.delete_message(ctx.message)
 
     @commands.command(name='lfgpurge', pass_context=True, hidden=True)
     @checks.is_owner()
     async def looking_for_game_purge(self, ctx, *args):
-        game_searches = GameSearch.objects.filter(cancelled=False, expire_date__gte=timezone.now())
-        await self.bot.say('\n**Are you sure you want to cancel all active game searches?**\n```There are currently `{}` active searches.```'.format(game_searches.count()), delete_after=30)
+        game_searches = self.get_game_searches()
+        question_message = await self.bot.say('\n**Are you sure you want to cancel all active game searches?**\nActive Searches: `{}`.'.format(game_searches.count()))
         def check(msg):
             try:
                 return msg.content.strip().lower() == "yes"
@@ -315,11 +321,14 @@ class Gaming(GamingUtils):
                 return False
         msg = False
         msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
-        if msg:
+        if isinstance(msg, discord.Message):
             game_searches.update(cancelled=True)
             for server in self.bot.servers:
-                cancelled_message = ':exclamation: **All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now())
-                await self.bot.send_message(server.default_channel, cancelled_message)
+                cancelled_message = ':exclamation: LFG: **All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now())
+                cmsg = await self.bot.send_message(server.default_channel, cancelled_message, delete_after=30)
+            await self.bot.delete_message(msg)
+        await self.bot.delete_message(question_message)
+        await self.bot.delete_message(ctx.message)
 
     @commands.command(name='halp', pass_context=True, hidden=True)
     @checks.is_owner()
@@ -327,16 +336,7 @@ class Gaming(GamingUtils):
         """
         Halp is my testing command
         """
-        print("Rawr")
-        await self.bot.say('Please type something that starts with "hello"')
-        def check(msg):
-            return msg.content.lower().startswith('hello')
-        msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
-        if msg:
-            content = msg.content.strip()
-            await self.bot.send_message(msg.channel, 'You said:\n{}'.format(content))
-        else:
-            await self.bot.say('Whoops... looks like your time ran out {}. Please re-run the command and try again.'.format(ctx.message.author.mention))
+        await self.bot.purge_from(ctx.message.channel)
     # End Commands
 
     # Errors
