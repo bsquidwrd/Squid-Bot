@@ -79,6 +79,8 @@ class Gaming(GamingUtils):
         for server in self.bot.servers:
             Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
             for user in server.members:
+                if user.bot:
+                    continue
                 DiscordUser.objects.get_or_create(user_id=user.id, defaults={'name': user.name})
 
     def create_user(self, member):
