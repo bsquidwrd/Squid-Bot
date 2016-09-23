@@ -129,7 +129,7 @@ class Gaming(GamingUtils):
             GameUser.objects.get_or_create(user=user, game=game)
         elif possible_games.count() == 1:
             game = possible_games[0]
-            GameUser.objects.get_or_create(user=user, game=game, defaults={'user': user, 'game': game})
+            GameUser.objects.get_or_create(user=user, game=game)
     # End Events
 
     # Commands
