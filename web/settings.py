@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('SQUID_BOT_DJANGO_SECRET', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', 'true')
 if debug_mode.lower() == 'false':
     DEBUG = False
 else:
@@ -38,7 +38,6 @@ else:
         'localhost',
         '*.bsquid.io',
         '*.bsquidwrd.com',
-        'quiet-refuge-52429.herokuapp.com'
     ]
 
 if 'TRAVIS' in os.environ:
@@ -88,7 +87,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'squidbot',
+    'gaming',
 ]
 
 MIDDLEWARE = [

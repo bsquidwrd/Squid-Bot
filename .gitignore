@@ -4,6 +4,7 @@ node_modules/*
 data/*
 logs/*
 config/*
+environment.py
 
 # Python .gitignore info
 # Byte-compiled / optimized / DLL files

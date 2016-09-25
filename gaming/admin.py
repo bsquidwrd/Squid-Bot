@@ -1,5 +1,5 @@
 from django.contrib import admin
-from squidbot.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
 
 
 class GameSearchAdmin(admin.ModelAdmin):

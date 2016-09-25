@@ -1,6 +1,5 @@
 from discord.ext import commands
 import discord
-import credentials
 from cogs.utils import checks
 import datetime, re
 import asyncio
@@ -11,8 +10,10 @@ import sys
 import os
 from collections import Counter
 
+import web.wsgi
 
-debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', True)
+
+debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', 'true')
 if not isinstance(debug_mode, bool):
     # SQUID_BOT_DEBUG_MODE can be set to either 'false' or 'no'. Case insensitive
     debug_mode = not (debug_mode.lower() in ['false', 'no'])
@@ -38,10 +39,10 @@ bot_start_time = datetime.datetime.utcnow()
 if debug_mode:
     log_filename = 'squid_bot.log'
 else:
-    logs_dir = 'logs\{0}\{1}'.format(bot_start_time.strftime('%Y'), bot_start_time.strftime('%m'))
+    logs_dir = 'logs/{0}/{1}'.format(bot_start_time.strftime('%Y'), bot_start_time.strftime('%m'))
     if not os.path.isdir(logs_dir):
         os.makedirs(logs_dir)
-    log_filename = '{0}\squid_bot.{1}.log'.format(logs_dir, bot_start_time.strftime('%Y-%m-%d.%H-%M-%S'))
+    log_filename = '{0}/squid_bot.{1}.log'.format(logs_dir, bot_start_time.strftime('%Y-%m-%d.%H-%M-%S'))
 
 handler = logging.FileHandler(filename=log_filename, encoding='utf-8', mode='w')
 log.addHandler(handler)
@@ -70,7 +71,7 @@ async def on_ready():
     log.info('Logged in as:\nUsername: {0.user.name}\nID: {0.user.id}\nDebug: {1}\n------'.format(bot, str(debug_mode)))
     if not hasattr(bot, 'uptime'):
         bot.uptime = bot_start_time
-    squid_bot_game = discord.Game(name=bot.user.name, url=github_url, type=0)
+    squid_bot_game = discord.Game(name='!help', url=github_url, type=0)
     await bot.change_status(game=squid_bot_game, idle=False)
 
 @bot.event
@@ -116,9 +117,6 @@ async def restart():
     await bot.say(':wave:')
     await bot.close()
     await bot.loop.stop()
-
-def load_credentials():
-    return credentials.load_credentials()
 
 if __name__ == '__main__':
     if any('debug' in arg.lower() for arg in sys.argv):
