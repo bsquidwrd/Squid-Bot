@@ -93,6 +93,8 @@ class Gaming:
         for server in self.bot.servers:
             Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
             for user in server.members:
+                if user.bot:
+                    continue
                 DiscordUser.objects.get_or_create(user_id=user.id, defaults={'name': user.name})
 
     def create_user(self, member):
@@ -141,7 +143,7 @@ class Gaming:
             GameUser.objects.get_or_create(user=user, game=game)
         elif possible_games.count() == 1:
             game = possible_games[0]
-            GameUser.objects.get_or_create(user=user, game=game, defaults={'user': user, 'game': game})
+            GameUser.objects.get_or_create(user=user, game=game)
     # End Events
 
     # Commands
