@@ -69,6 +69,27 @@ class Role(models.Model):
         verbose_name_plural = "Roles"
 
 
+class Channel(models.Model):
+    server = models.ForeignKey('Server')
+    channel_id = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+    created_date = models.DateTimeField(default=timezone.now)
+    expire_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.channel_id)
+
+    def save(self, *args, **kwargs):
+        from datetime import timedelta
+        if not self.id:
+            self.expire_date = timezone.now() + timedelta(minutes=15)
+        super(Channel, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Channel"
+        verbose_name_plural = "Channels"
+
+
 class GameSearch(models.Model):
     user = models.ForeignKey('DiscordUser')
     game = models.ForeignKey('Game')
