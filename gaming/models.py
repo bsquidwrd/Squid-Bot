@@ -97,6 +97,7 @@ class GameSearch(models.Model):
     created_date = models.DateTimeField(default=timezone.now)
     expire_date = models.DateTimeField(default=timezone.now)
     cancelled = models.BooleanField(default=False)
+    game_found = models.BooleanField(default=False)
 
     def __str__(self):
         return '{} - {}'.format(str(self.user), str(self.game))

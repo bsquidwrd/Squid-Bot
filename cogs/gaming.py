@@ -112,7 +112,7 @@ class Gaming:
         return (game_search, created)
 
     def get_game_searches(self, user=None, game=None):
-        game_searches = GameSearch.objects.filter(cancelled=False, expire_date__gte=timezone.now())
+        game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=timezone.now())
         if isinstance(user, DiscordUser):
             game_searches = game_searches.filter(user=user)
         if isinstance(game, Game):
@@ -421,7 +421,6 @@ class Gaming:
         user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
         channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, user_perms))
         Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name)
-        for search in GameSearch.objects.filter(game__name='Overwatch')[:5]:
             await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
         minutes_to_wait = 15
         time_to_delete = (timezone.now() + timedelta(minutes=minutes_to_wait)).strftime("%Y-%m-%d %H:%M")
