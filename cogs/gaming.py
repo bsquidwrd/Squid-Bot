@@ -2,7 +2,7 @@ import os
 import asyncio
 from discord.ext import commands
 from discord.ext.commands import Bot
-from datetime import datetime
+from datetime import datetime, timedelta
 import discord
 from .utils import checks
 from .utils.data import Data
@@ -10,7 +10,7 @@ from .utils.data import Data
 import web.wsgi
 from django.utils import timezone
 from django.db import models
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel
 
 DISCORD_MSG_CHAR_LIMIT = 2000
 
@@ -403,8 +403,8 @@ class Gaming:
         if isinstance(msg, discord.Message):
             game_searches.update(cancelled=True)
             for server in self.bot.servers:
-                cancelled_message = ':exclamation: LFG: **All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now())
-                cmsg = await self.bot.send_message(server.default_channel, cancelled_message, delete_after=30)
+                cancelled_message = '**All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now().strftime("%Y-%m-%d %H:%M"))
+                cmsg = await self.bot.send_message(server.default_channel, cancelled_message)
             await self.bot.delete_message(msg)
         await self.bot.delete_message(question_message)
         await self.bot.delete_message(ctx.message)
@@ -416,31 +416,40 @@ class Gaming:
         Halp is my testing command
         """
         server = ctx.message.server
-        everyone = discord.PermissionOverwrite(read_messages=False)
-        mine = discord.PermissionOverwrite(read_messages=True)
-        channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, mine))
-        minutes_to_wait = 5
+        mserver = Server.objects.get(server_id=server.id)
+        everyone = discord.PermissionOverwrite(read_messages=False, send_messages=False)
+        user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, user_perms))
+        Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name)
+        for search in GameSearch.objects.filter(game__name='Overwatch')[:5]:
+            await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
+        minutes_to_wait = 15
+        time_to_delete = (timezone.now() + timedelta(minutes=minutes_to_wait)).strftime("%Y-%m-%d %H:%M")
+        msg = await self.bot.send_message(channel, "This channel will be deleted at {} UTC ({} minutes from creation.)".format(time_to_delete, minutes_to_wait))
+        await self.bot.pin_message(msg)
         for i in range(0, minutes_to_wait):
-            msg = await self.bot.send_message(channel, "This channel has {} minutes to live...".format(minutes_to_wait - (i+1)))
+            minutes_to_live  = minutes_to_wait - i
+            if minutes_to_live == 2:
+                try:
+                    await self.bot.send_message(channel, "@here please make sure to go into a group call and continue gaming. This channel will be deleted in {} minutes.".format(minutes_to_live))
+                except:
+                    continue
             await asyncio.sleep(60)
-            await self.bot.delete_message(msg)
         await self.bot.delete_channel(channel)
 
     @commands.command(name='purge', pass_context=True, hidden=True)
-    async def purge_command(self, ctx, *args):
+    async def purge_command(self, ctx, *, messages_to_purge: int = 100):
         """
-        Purge 100 chat messages
+        Purge up to 100 chat messages
         """
         if ctx.message.author.id != ctx.message.server.owner.id:
             await self.bot.say("Only the server owner can do that!")
         else:
             try:
-                await self.bot.purge_from(ctx.message.channel)
+                await self.bot.purge_from(ctx.message.channel, int(messages_to_purge))
                 await self.bot.say('\N{OK HAND SIGN}')
             except Exception as e:
                 await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
-
-
     # End Commands
 
     # Errors
