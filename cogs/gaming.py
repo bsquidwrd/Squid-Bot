@@ -1,4 +1,5 @@
 import os
+import asyncio
 from discord.ext import commands
 from discord.ext.commands import Bot
 from datetime import datetime
@@ -39,10 +40,17 @@ def paginate(content, *, length=DISCORD_MSG_CHAR_LIMIT, reserve=0):
 
     return chunks
 
-class GamingUtils:
-    def __init__(self):
+class Gaming:
+    def __init__(self, bot):
+        self.bot = bot
+        self.populate_info()
+        super().__init__()
+
+    def __unload(self):
+        """Called when the cog is unloaded"""
         pass
 
+    # Class methods
     async def game_beautify(self, games, reserve=0, page=0, available=True):
         """
         Return a message of all games ready for displaying all pretty like
@@ -58,23 +66,29 @@ class GamingUtils:
             for game in games:
                 if isinstance(game, GameSearch):
                     game = Game.objects.get(pk=game.pk)
-                formatted_message += '`{0}:` {1}\n'.format(game.pk, game.name)
+                current_searches = self.get_game_searches(game=game)
+                formatted_message += '{0.pk}: `{0.name}` {1} people searching\n'.format(game, current_searches.count())
         except Exception as e:
             pass
         return paginate(formatted_message, reserve=reserve)[page]
 
+    async def game_user_beautify(self, game, user, reserve=0, page=0):
+        """
+        Return a message of all users who play a specific game ready for displaying all pretty like
+        """
+        formatted_message = '**Nobody has played `{0.name}`, be the first by starting to play now!**'.format(game)
+        try:
+            game_users = GameUser.objects.filter(game=game).exclude(user=user)
+            if game_users.count() >= 1:
+                formatted_message = 'The following people have played `{1.name}`:\n```'.format(game_users.count(), game)
+                for gu in game_users:
+                    u = gu.user
+                    formatted_message += '\n{0}'.format(u.name)
+                formatted_message += '```'
+        except Exception as e:
+            pass
+        return paginate(formatted_message, reserve=reserve)[page]
 
-class Gaming(GamingUtils):
-    def __init__(self, bot):
-        self.bot = bot
-        self.populate_info()
-        super().__init__()
-
-    def __unload(self):
-        """Called when the cog is unloaded"""
-        pass
-
-    # Class methods
     def populate_info(self):
         for server in self.bot.servers:
             Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
@@ -101,7 +115,7 @@ class Gaming(GamingUtils):
             game_searches = game_searches.filter(user=user)
         if isinstance(game, Game):
             game_searches = game_searches.filter(game=game)
-        return game_searches.order_by('pk')
+        return game_searches.order_by('-pk')
 
     # Events
     async def on_ready(self):
@@ -184,7 +198,7 @@ class Gaming(GamingUtils):
                         games.append(game)
         if len(games) == 1:
             game = games[0]
-            game_search, created = self.create_game_search(user, game, pass_created=True)
+            game_search, created = self.create_game_search(user, game)
         else:
             msg = False
             temp_message = '{0.message.author.mention}: Which game did you want to search for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'.format(ctx)
@@ -227,7 +241,7 @@ class Gaming(GamingUtils):
 
     @commands.command(name='lfgstop', pass_context=True)
     async def looking_for_game_remove(self, ctx, *, game_search_key: str = None, page_number: str = None):
-        """Starts searching for a game to play with others"""
+        """Stop searching for a game"""
         user = self.create_user(ctx.message.author)
         games_removed = []
 
@@ -309,6 +323,69 @@ class Gaming(GamingUtils):
             await self.bot.say("I didn't quite understand your response {0.message.author.mention}, please run the command again.".format(ctx), delete_after=30)
         await self.bot.delete_message(ctx.message)
 
+    @commands.command(name='whoplays', pass_context=True)
+    async def who_plays(self, ctx, *, game_search_key: str = None, page_number: str = None):
+        """Used when users want to play a game with others"""
+        user = self.create_user(ctx.message.author)
+        games = Game.objects.all()
+
+        time_ran_out = False
+
+        page = 0
+        if page_number:
+            if page_number.lower().startswith('p'):
+                page = int(page_number[1::]) - 1
+
+        if game_search_key:
+            current_searches = self.get_game_searches(user=user)
+            current_searches_games = [search.game for search in current_searches]
+            try:
+                possible_games = Game.objects.filter(pk=int(game_search_key))
+            except:
+                possible_games = Game.objects.filter(name__icontains=game_search_key)
+            games = possible_games
+        if games.count() == 1:
+            game = games[0]
+            game_search, created = self.create_game_search(user, game)
+        else:
+            msg = False
+            temp_message = '{0.message.author.mention}: Which game did you want to search for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'.format(ctx)
+            formatted_games = await self.game_beautify(games, reserve=len(temp_message), page=page)
+            final_message = '{}{}'.format(temp_message, formatted_games)
+            question_message = await self.bot.say(final_message)
+            gameIDs = [game.pk for game in games]
+            def check(msg):
+                try:
+                    return int(msg.content.strip()) in gameIDs
+                except:
+                    return False
+            msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
+            if isinstance(msg, discord.Message):
+                try:
+                    content = msg.content.strip()
+                    try:
+                        game_pk = int(content)
+                        possible_game = Game.objects.filter(pk=game_pk)
+                    except:
+                        possible_game = Game.objects.filter(name__icontains=content)
+                    if possible_game.count() == 1:
+                        game = possible_game[0]
+                except Exception as e:
+                    print(e)
+                await self.bot.delete_message(msg)
+            else:
+                time_ran_out = True
+            await self.bot.delete_message(question_message)
+
+        if game:
+            temp_message = '{0.message.author.mention}\n'.format(ctx)
+            await self.bot.say('{}{}'.format(temp_message, await self.game_user_beautify(game, user, reserve=len(temp_message), page=page)), delete_after=30)
+        elif time_ran_out:
+            await self.bot.say('Whoops... looks like your time ran out {0.message.author.mention}. Please re-run the command and try again.'.format(ctx), delete_after=30)
+        else:
+            await self.bot.say("{0.message.author.mention}: I didn't quite understand your response, please run the command again.".format(ctx), delete_after=30)
+        await self.bot.delete_message(ctx.message)
+
     @commands.command(name='lfgpurge', pass_context=True, hidden=True)
     @checks.is_owner()
     async def looking_for_game_purge(self, ctx, *args):
@@ -336,7 +413,32 @@ class Gaming(GamingUtils):
         """
         Halp is my testing command
         """
-        await self.bot.purge_from(ctx.message.channel)
+        server = ctx.message.server
+        everyone = discord.PermissionOverwrite(read_messages=False)
+        mine = discord.PermissionOverwrite(read_messages=True)
+        channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, mine))
+        minutes_to_wait = 5
+        for i in range(0, minutes_to_wait):
+            msg = await self.bot.send_message(channel, "This channel has {} minutes to live...".format(minutes_to_wait - (i+1)))
+            await asyncio.sleep(60)
+            await self.bot.delete_message(msg)
+        await self.bot.delete_channel(channel)
+
+    @commands.command(name='purge', pass_context=True, hidden=True)
+    async def purge_command(self, ctx, *args):
+        """
+        Purge 100 chat messages
+        """
+        if ctx.message.author.id != ctx.message.server.owner.id:
+            await self.bot.say("Only the server owner can do that!")
+        else:
+            try:
+                await self.bot.purge_from(ctx.message.channel)
+                await self.bot.say('\N{OK HAND SIGN}')
+            except Exception as e:
+                await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
+
+
     # End Commands
 
     # Errors
