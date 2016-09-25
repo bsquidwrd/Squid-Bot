@@ -1,10 +1,10 @@
+import os
 from discord.ext import commands
 import discord.utils
-import credentials
 
 
 def is_owner_check(message):
-    return message.author.id == credentials.load_credentials()['owner_id']
+    return message.author.id == os.getenv('SQUID_BOT_OWNER_ID', '131224383640436736')
 
 def is_owner():
     return commands.check(lambda ctx: is_owner_check(ctx.message))
