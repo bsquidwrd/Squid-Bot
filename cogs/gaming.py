@@ -450,7 +450,7 @@ class Gaming:
                 await self.bot.say('\N{OK HAND SIGN}')
             except Exception as e:
                 print(e)
-                await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')\
+                await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
     # End Commands
 
     # Errors
