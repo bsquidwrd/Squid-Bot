@@ -115,8 +115,7 @@ async def give_github_url():
 async def restart():
     """Restarts the bot"""
     await bot.say(':wave:')
-    await bot.close()
-    await bot.loop.stop()
+    await bot.logout()
 
 if __name__ == '__main__':
     if any('debug' in arg.lower() for arg in sys.argv):

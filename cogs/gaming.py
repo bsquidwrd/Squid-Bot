@@ -446,9 +446,10 @@ class Gaming:
             await self.bot.say("Only the server owner can do that!")
         else:
             try:
-                await self.bot.purge_from(ctx.message.channel, int(messages_to_purge))
+                await self.bot.purge_from(ctx.message.channel, limit=int(messages_to_purge))
                 await self.bot.say('\N{OK HAND SIGN}')
             except Exception as e:
+                print(e)
                 await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
     # End Commands
 
