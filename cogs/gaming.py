@@ -95,7 +95,7 @@ class Gaming:
             for user in server.members:
                 if user.bot:
                     continue
-                DiscordUser.objects.get_or_create(user_id=user.id, defaults={'name': user.name})
+                self.create_user(user)
 
     def create_user(self, member):
         # Returns a DiscordUser object after getting or creating the user
@@ -137,6 +137,8 @@ class Gaming:
         else:
             member = after
         game = member.game
+        if game is None:
+            return
         possible_games = Game.objects.filter(name=game.name.strip())
         if possible_games.count() == 0:
             game = Game.objects.create(name=game.name.strip(), url=game.url)
