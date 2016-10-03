@@ -64,7 +64,7 @@ class PrivateChannel:
     # End Events
 
     # Commands
-    @commands.command(name='private', pass_context=True, hidden=True)
+    @commands.command(name='private', pass_context=True)
     async def create_private_channel(self, ctx, *args):
         """
         Creates a private channel that you control!
