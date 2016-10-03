@@ -438,21 +438,6 @@ class Gaming:
                     continue
             await asyncio.sleep(60)
         await self.bot.delete_channel(channel)
-
-    @commands.command(name='purge', pass_context=True, hidden=True)
-    async def purge_command(self, ctx, *, messages_to_purge: int = 100):
-        """
-        Purge up to 100 chat messages
-        """
-        if ctx.message.author.id != ctx.message.server.owner.id:
-            await self.bot.say("Only the server owner can do that!")
-        else:
-            try:
-                await self.bot.purge_from(ctx.message.channel, limit=int(messages_to_purge))
-                await self.bot.say('\N{OK HAND SIGN}')
-            except Exception as e:
-                print(e)
-                await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
     # End Commands
 
     # Errors
