@@ -152,7 +152,7 @@ class Gaming:
     @commands.command(name='games', pass_context=True)
     async def list_games(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Get a list of all the games
-        Example: !games over p2"""
+        Example: ?games over p2"""
         page = 0
         if page_number:
             if page_number.lower().startswith('p'):
@@ -176,7 +176,7 @@ class Gaming:
     @commands.command(name='lfg', pass_context=True)
     async def looking_for_game(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Used when users want to play a game with others
-        Example: !lfg overwatch"""
+        Example: ?lfg overwatch"""
         user = self.create_user(ctx.message.author)
         games = [game for game in Game.objects.all()]
 
