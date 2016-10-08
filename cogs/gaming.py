@@ -101,7 +101,7 @@ class Gaming:
         # Returns a DiscordUser object after getting or creating the user
         # Does not create users for Bots
         if member.bot:
-            return
+            return False
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
 
     def create_game_search(self, user, game):
@@ -135,6 +135,8 @@ class Gaming:
     async def on_member_update(self, before, after):
         """This is to populate games and users automatically"""
         user = self.create_user(after)
+        if not user:
+            return
         if before.game:
             member = before
         else:
@@ -182,6 +184,9 @@ class Gaming:
         Example: ?lfg overwatch"""
         user = self.create_user(ctx.message.author)
         games = [game for game in Game.objects.all()]
+
+        if not user:
+            return
 
         page = 0
         if page_number:
@@ -251,6 +256,9 @@ class Gaming:
         """Stop searching for a game"""
         user = self.create_user(ctx.message.author)
         games_removed = []
+
+        if not user:
+            return
 
         page = 0
         if page_number:
@@ -335,6 +343,9 @@ class Gaming:
         """Used when users want to play a game with others"""
         user = self.create_user(ctx.message.author)
         games = Game.objects.all()
+
+        if not user:
+            return
 
         time_ran_out = False
 
