@@ -439,7 +439,7 @@ class Gaming:
             except:
                 return False
         msg = False
-        msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=30)
+        msg = await self.bot.wait_for_message(author=ctx.message.author, check=check, timeout=15)
         if isinstance(msg, discord.Message):
             game_searches.update(cancelled=True)
             for server in self.bot.servers:
