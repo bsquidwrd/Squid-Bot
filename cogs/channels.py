@@ -74,7 +74,7 @@ class PrivateChannel:
         """
         dserver = ctx.message.server
         duser = ctx.message.author
-        server = self.get_server(duser)
+        server = self.get_server(dserver)
         user = self.get_user(duser)
         if not user:
             return
