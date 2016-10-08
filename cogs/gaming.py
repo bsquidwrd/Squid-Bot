@@ -99,6 +99,9 @@ class Gaming:
 
     def create_user(self, member):
         # Returns a DiscordUser object after getting or creating the user
+        # Does not create users for Bots
+        if member.bot:
+            return
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
 
     def create_game_search(self, user, game):
