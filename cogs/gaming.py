@@ -95,7 +95,7 @@ class Gaming:
             for user in server.members:
                 if user.bot:
                     continue
-                self.create_user(user)
+                self.get_user(user)
 
     def create_user(self, member):
         # Returns a DiscordUser object after getting or creating the user
@@ -127,14 +127,14 @@ class Gaming:
         self.populate_info()
 
     async def on_member_join(self, member):
-        self.create_user(member)
+        self.get_user(member)
 
     async def on_member_remove(self, member):
         pass
 
     async def on_member_update(self, before, after):
         """This is to populate games and users automatically"""
-        user = self.create_user(after)
+        user = self.get_user(after)
         if not user:
             return
         if before.game:
@@ -182,7 +182,7 @@ class Gaming:
     async def looking_for_game(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Used when users want to play a game with others
         Example: ?lfg overwatch"""
-        user = self.create_user(ctx.message.author)
+        user = self.get_user(ctx.message.author)
         games = [game for game in Game.objects.all()]
 
         if not user:
@@ -254,7 +254,7 @@ class Gaming:
     @commands.command(name='lfgstop', pass_context=True)
     async def looking_for_game_remove(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Stop searching for a game"""
-        user = self.create_user(ctx.message.author)
+        user = self.get_user(ctx.message.author)
         games_removed = []
 
         if not user:
@@ -341,7 +341,7 @@ class Gaming:
     @commands.command(name='whoplays', pass_context=True)
     async def who_plays(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Used when users want to play a game with others"""
-        user = self.create_user(ctx.message.author)
+        user = self.get_user(ctx.message.author)
         games = Game.objects.all()
 
         if not user:
