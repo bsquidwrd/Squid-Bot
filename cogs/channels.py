@@ -34,6 +34,9 @@ class PrivateChannel:
 
     def get_user(self, member):
         # Returns a DiscordUser object after getting or creating the user
+        # Does not do anything for a bot user
+        if member.bot:
+            return False
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
 
     def get_server(self, discord_server):
@@ -60,7 +63,7 @@ class PrivateChannel:
 
     async def on_member_update(self, before, after):
         """This is to populate games and users automatically"""
-        user = self.get_user(after)
+        self.get_user(after)
     # End Events
 
     # Commands
@@ -73,6 +76,8 @@ class PrivateChannel:
         duser = ctx.message.author
         server = self.get_server(duser)
         user = self.get_user(duser)
+        if not user:
+            return
         try:
             channel = Channel.objects.get(user=user, server=server)
             dchannel = self.bot.get_channel(channel.channel_id)
