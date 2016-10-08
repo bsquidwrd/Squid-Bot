@@ -10,6 +10,8 @@ from .utils.data import Data
 import web.wsgi
 from django.utils import timezone
 from django.db import models
+from django.db.models import Count
+from django.db.models.query import QuerySet
 from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel
 
 DISCORD_MSG_CHAR_LIMIT = 2000
@@ -57,17 +59,23 @@ class Gaming:
         """
         formatted_message = '**No games are currently in the database!\nStart playing some games to make the database better**'
         try:
+            if not isinstance(games, dict):
+                tmp_games = Game.objects.filter(pk__in=[g.pk for g in games])
+                games = self.map_games(tmp_games)
             if len(games) == 0:
-                games = Game.objects.all()
+                games = self.map_games(Game.objects.all())
 
             formatted_message = ''
             if available:
                 formatted_message += '\n**Available games**\n'
-            for game in games:
+            for i in games:
+                game = games[i]
+                if game is None:
+                    continue
                 if isinstance(game, GameSearch):
                     game = Game.objects.get(pk=game.pk)
                 current_searches = self.get_game_searches(game=game)
-                formatted_message += '{0.pk}: `{0.name}` {1} people searching\n'.format(game, current_searches.count())
+                formatted_message += '{0}: `{1.name}` {2} people searching\n'.format(i, game, current_searches.count())
         except Exception as e:
             pass
         return paginate(formatted_message, reserve=reserve)[page]
@@ -97,7 +105,7 @@ class Gaming:
                     continue
                 self.get_user(user)
 
-    def create_user(self, member):
+    def get_user(self, member):
         # Returns a DiscordUser object after getting or creating the user
         # Does not create users for Bots
         if member.bot:
@@ -121,6 +129,23 @@ class Gaming:
         if isinstance(game, Game):
             game_searches = game_searches.filter(game=game)
         return game_searches.order_by('-pk')
+
+    def order_games(self, games):
+        """ Takes a QuerySet of Game """
+        if isinstance(games, list):
+            games = Game.objects.filter(pk__in=[g.pk for g in games])
+        # Order the games by the number of players who play it
+        return games.annotate(user_count=Count('gameuser')).order_by('user_count')
+
+    def map_games(self, games):
+        """ Maps games to a number from highest played to lowest played """
+        games = self.order_games(games)
+        game_map = {
+            0: None,
+        }
+        for i, game in enumerate(games):
+            game_map[i+1] = game
+        return game_map
 
     # Events
     async def on_ready(self):
@@ -171,6 +196,7 @@ class Gaming:
                 games = Game.objects.filter(name__icontains=game_search_key)
         else:
             games = Game.objects.all()
+        games = self.map_games(games)
         want_to_play_message = 'Want to play a game with people? Type `{}help lfg` to learn how to start searching.'.format(ctx.prefix)
         message_to_send = '{}'.format(await self.game_beautify(games, page=page))
         if len(games) >= 1:
@@ -212,13 +238,14 @@ class Gaming:
             game = games[0]
             game_search, created = self.create_game_search(user, game)
         else:
+            games = self.map_games(games)
             msg = False
             temp_message = '{0.message.author.mention}: Which game did you want to search for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'.format(ctx)
             formatted_games = await self.game_beautify(games, reserve=len(temp_message), page=page)
             final_message = '{}{}'.format(temp_message, formatted_games)
             question_message = await self.bot.say(final_message)
             time_ran_out = False
-            gameIDs = [game.pk for game in games]
+            gameIDs = games.keys()
             def check(msg):
                 try:
                     return int(msg.content.strip()) in gameIDs
@@ -229,8 +256,7 @@ class Gaming:
                 try:
                     content = msg.content.strip()
                     try:
-                        game_pk = int(content)
-                        possible_game = Game.objects.filter(pk=game_pk)
+                        possible_game = Game.objects.filter(pk=games[int(content)].pk)
                     except:
                         possible_game = Game.objects.filter(name__icontains=content)
                     if possible_game.count() == 1:
@@ -270,17 +296,14 @@ class Gaming:
         no_game_searches = False
 
         if game_search_key:
-            try:
-                games = Game.objects.filter(pk=int(game_search_key))
-            except:
-                games = Game.objects.filter(name__icontains=game_search_key)
+            games = Game.objects.filter(name__icontains=game_search_key)
         else:
             game_pks = []
             for search in self.get_game_searches(user=user):
                 game_pks.append(search.game.pk)
-            games = Game.objects.filter(pk__in=game_pks).order_by('pk')
+            games = Game.objects.filter(pk__in=game_pks)
         game_removed = 'All Games'
-        games = games.order_by('pk')
+        games = self.order_games(games)
 
         if games.count() == 1:
             game = games[0]
@@ -295,11 +318,12 @@ class Gaming:
                 if game.game not in games:
                     games.append(game.game)
             if len(games) >= 1:
+                games = self.map_games(games)
                 temp_message = '{0.message.author.mention}: Which game would you like to stop searching for?\n_Please only type in the number next to the game_\n_You have 30 seconds to respond_\n'.format(ctx)
                 formatted_games = await self.game_beautify(games, page=page)
                 final_message = '{}{}'.format(temp_message, formatted_games)
                 question_message = await self.bot.say(final_message)
-                gameIDs = [game.pk for game in games]
+                gameIDs = games.keys()
                 def check(msg):
                     try:
                         return int(msg.content.strip()) in gameIDs
@@ -311,8 +335,7 @@ class Gaming:
                     try:
                         content = msg.content.strip()
                         try:
-                            game_pk = int(content)
-                            possible_game = Game.objects.filter(pk=game_pk)
+                            possible_game = Game.objects.filter(pk=games[int(content)].pk)
                         except:
                             possible_game = Game.objects.filter(name__icontains=game_pk)
                         if possible_game.count() == 1:
@@ -340,7 +363,7 @@ class Gaming:
 
     @commands.command(name='whoplays', pass_context=True)
     async def who_plays(self, ctx, *, game_search_key: str = None, page_number: str = None):
-        """Used when users want to play a game with others"""
+        """See who has played a certain game in the past"""
         user = self.get_user(ctx.message.author)
         games = Game.objects.all()
 
@@ -348,6 +371,7 @@ class Gaming:
             return
 
         time_ran_out = False
+        game = False
 
         page = 0
         if page_number:
@@ -362,7 +386,8 @@ class Gaming:
             except:
                 possible_games = Game.objects.filter(name__icontains=game_search_key)
             games = possible_games
-        if games.count() == 1:
+        games = self.map_games(games)
+        if len(games) == 1:
             game = games[0]
             game_search, created = self.create_game_search(user, game)
         else:
@@ -371,7 +396,7 @@ class Gaming:
             formatted_games = await self.game_beautify(games, reserve=len(temp_message), page=page)
             final_message = '{}{}'.format(temp_message, formatted_games)
             question_message = await self.bot.say(final_message)
-            gameIDs = [game.pk for game in games]
+            gameIDs = games.keys()
             def check(msg):
                 try:
                     return int(msg.content.strip()) in gameIDs
@@ -382,8 +407,7 @@ class Gaming:
                 try:
                     content = msg.content.strip()
                     try:
-                        game_pk = int(content)
-                        possible_game = Game.objects.filter(pk=game_pk)
+                        possible_game = Game.objects.filter(pk=games[int(content)].pk)
                     except:
                         possible_game = Game.objects.filter(name__icontains=content)
                     if possible_game.count() == 1:
