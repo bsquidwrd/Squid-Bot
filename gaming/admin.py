@@ -83,7 +83,7 @@ class GameSearchAdmin(admin.ModelAdmin):
 
     def cancel_searches(self, request, queryset):
         queryset.update(cancelled=True)
-        self.message_user(request, 'All selected students were marked for refresh', level=messages.SUCCESS)
+        self.message_user(request, 'All selected searches have been cancelled', level=messages.SUCCESS)
 
     get_display_name.short_description = 'Display Name'
     cancel_searches.short_description = 'Cancel selected Game Searches'
