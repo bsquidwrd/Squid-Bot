@@ -88,6 +88,7 @@ async def on_command(command, ctx):
         destination = 'Private Message'
     else:
         destination = '#{0.channel.name} ({0.server.name})'.format(message)
+    print('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
     log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
 
 @bot.event
