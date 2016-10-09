@@ -84,7 +84,6 @@ class Gaming:
         """
         Return a message of all users who play a specific game ready for displaying all pretty like
         """
-        formatted_message = '**Nobody has played `{0.name}`, be the first by starting to play now!**'.format(game)
         formatted_message = '**It doesn\'t look like anyone has played `{0.name}`, be one of the first by starting to play now!**'.format(game)
         try:
             game_users = GameUser.objects.filter(game=game).exclude(user=user)
@@ -99,6 +98,7 @@ class Gaming:
         return paginate(formatted_message, reserve=reserve)[page]
 
     def populate_info(self):
+        """ Populate all users and servers """
         for server in self.bot.servers:
             Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
             for user in server.members:
@@ -107,13 +107,16 @@ class Gaming:
                 self.get_user(user)
 
     def get_user(self, member):
-        # Returns a DiscordUser object after getting or creating the user
-        # Does not create users for Bots
+        """
+        Returns a DiscordUser object after getting or creating the user
+        Does not create users for Bots
+        """
         if member.bot:
             return False
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
 
     def create_game_search(self, user, game):
+        """ Create a GameSearch object for a user if one does not exist or isn't active """
         created = False
         game_searches = self.get_game_searches(user=user, game=game)
         if game_searches.count() >= 1:
@@ -124,6 +127,7 @@ class Gaming:
         return (game_search, created)
 
     def get_game_searches(self, user=None, game=None):
+        """ Get GameSearch for the specified user and/or game. If none provided, return all """
         game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=timezone.now())
         if isinstance(user, DiscordUser):
             game_searches = game_searches.filter(user=user)
@@ -150,16 +154,19 @@ class Gaming:
 
     # Events
     async def on_ready(self):
+        """ Bot is loaded, do stuff """
         self.populate_info()
 
     async def on_member_join(self, member):
+        """ A new member has joined, do stuff with them """
         self.get_user(member)
 
     async def on_member_remove(self, member):
+        """ A member has been kicked/banned or has left a server, do something """
         pass
 
     async def on_member_update(self, before, after):
-        """This is to populate games and users automatically"""
+        """ This is to populate games and users automatically """
         user = self.get_user(after)
         if not user:
             return
