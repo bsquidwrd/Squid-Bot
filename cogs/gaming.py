@@ -85,6 +85,7 @@ class Gaming:
         Return a message of all users who play a specific game ready for displaying all pretty like
         """
         formatted_message = '**Nobody has played `{0.name}`, be the first by starting to play now!**'.format(game)
+        formatted_message = '**It doesn\'t look like anyone has played `{0.name}`, be one of the first by starting to play now!**'.format(game)
         try:
             game_users = GameUser.objects.filter(game=game).exclude(user=user)
             if game_users.count() >= 1:
