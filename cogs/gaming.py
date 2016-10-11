@@ -145,9 +145,7 @@ class Gaming:
     def map_games(self, games):
         """ Maps games to a number from highest played to lowest played """
         games = self.order_games(games)
-        game_map = {
-            0: None,
-        }
+        game_map = {}
         for i, game in enumerate(games):
             game_map[i+1] = game
         return game_map
@@ -243,7 +241,7 @@ class Gaming:
                     if game not in games:
                         games.append(game)
         if len(games) == 1:
-            game = games[0]
+            game = games[1]
             game_search, created = self.create_game_search(user, game)
         else:
             games = self.map_games(games)
@@ -396,7 +394,7 @@ class Gaming:
             games = possible_games
         games = self.map_games(games)
         if len(games) == 1:
-            game = games[0]
+            game = games[1]
             game_search, created = self.create_game_search(user, game)
         else:
             msg = False
