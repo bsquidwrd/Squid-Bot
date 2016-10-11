@@ -111,3 +111,15 @@ class GameSearch(models.Model):
     class Meta:
         verbose_name = "Game Search"
         verbose_name_plural = "Game Searches"
+
+
+class ServerUser(models.Model):
+    user = models.ForeignKey('DiscordUser')
+    server = models.ForeignKey('Server')
+
+    def __str__(self):
+        return '{} - {}'.format(str(self.user), str(self.Server))
+
+    class Meta:
+        verbose_name = "Server User"
+        verbose_name_plural = "Server Users"

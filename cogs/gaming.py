@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.db import models
 from django.db.models import Count
 from django.db.models.query import QuerySet
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel
+from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel
 
 DISCORD_MSG_CHAR_LIMIT = 2000
 
@@ -100,11 +100,12 @@ class Gaming:
     def populate_info(self):
         """ Populate all users and servers """
         for server in self.bot.servers:
-            Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
+            s, created = Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
             for user in server.members:
                 if user.bot:
                     continue
-                self.get_user(user)
+                u = self.get_user(user)
+                self.get_server_user(u, s)
 
     def get_user(self, member):
         """
@@ -114,6 +115,9 @@ class Gaming:
         if member.bot:
             return False
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
+
+    def get_server_user(self, user, server):
+        return ServerUser.objects.get_or_create(user=user, server=server)[0]
 
     def create_game_search(self, user, game):
         """ Create a GameSearch object for a user if one does not exist or isn't active """
