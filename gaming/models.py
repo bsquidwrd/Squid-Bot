@@ -118,7 +118,7 @@ class ServerUser(models.Model):
     server = models.ForeignKey('Server')
 
     def __str__(self):
-        return '{} - {}'.format(str(self.user), str(self.Server))
+        return '{} - {}'.format(str(self.user), str(self.server))
 
     class Meta:
         verbose_name = "Server User"
