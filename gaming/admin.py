@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser
 
 
 class DiscordUserAdmin(admin.ModelAdmin):
@@ -100,9 +100,26 @@ class GameSearchAdmin(admin.ModelAdmin):
     ordering = ('cancelled', '-created_date', '-expire_date')
     actions = ['cancel_searches']
 
+
+class GameUserAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    fieldsets = [
+        (None, {'fields': ['user', 'server',]}),
+    ]
+
+    list_display = ('get_display_name',)
+    list_display_links = ('get_display_name',)
+    search_fields = ('user__name', 'user__user_id', 'server__server_id', 'server__name',)
+
+
 admin.site.register(DiscordUser, DiscordUserAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(GameUser, GameUserAdmin)
 admin.site.register(Server, ServerAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(GameSearch, GameSearchAdmin)
+admin.site.register(ServerUser, ServerUserAdmin)
