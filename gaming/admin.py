@@ -101,7 +101,7 @@ class GameSearchAdmin(admin.ModelAdmin):
     actions = ['cancel_searches']
 
 
-class GameUserAdmin(admin.ModelAdmin):
+class ServerUserAdmin(admin.ModelAdmin):
     def get_display_name(self, obj):
         return str(obj)
 
