@@ -154,7 +154,7 @@ class Gaming:
             game_map[i+1] = game
         return game_map
 
-    def get_channel(self, ctx, game):
+    async def get_channel(self, ctx, game):
         """ Gets/Creates a channel for the game selected """
         server = ctx.message.server
         mserver = Server.objects.get(server_id=server.id)
