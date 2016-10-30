@@ -154,6 +154,23 @@ class Gaming:
             game_map[i+1] = game
         return game_map
 
+    def get_channel(self, ctx, game):
+        """ Gets/Creates a channel for the game selected """
+        server = ctx.message.server
+        mserver = Server.objects.get(server_id=server.id)
+
+        everyone = discord.PermissionOverwrite(read_messages=False, send_messages=False)
+        user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+
+        channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, user_perms))
+        mchannel = Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name, expire_date=expire_date)
+
+        for search in self.get_game_searches(game=game)[:5]:
+            await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
+        time_to_delete = mchannel.expire_date.strftime("%Y-%m-%d %H:%M")
+        msg = await self.bot.send_message(channel, "This channel will be deleted at {} UTC ({} minutes from creation.)".format(time_to_delete, minutes_to_wait))
+        await self.bot.pin_message(msg)
+
     # Events
     async def on_ready(self):
         """ Bot is loaded, do stuff """
@@ -465,27 +482,7 @@ class Gaming:
         """
         Halp is my testing command
         """
-        server = ctx.message.server
-        mserver = Server.objects.get(server_id=server.id)
-        everyone = discord.PermissionOverwrite(read_messages=False, send_messages=False)
-        user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
-        channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, user_perms))
-        Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name)
-        for search in self.get_game_searches(game=Game.objects.get(name='Overwatch'))[:5]:
-            await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
-        minutes_to_wait = 15
-        time_to_delete = (timezone.now() + timedelta(minutes=minutes_to_wait)).strftime("%Y-%m-%d %H:%M")
-        msg = await self.bot.send_message(channel, "This channel will be deleted at {} UTC ({} minutes from creation.)".format(time_to_delete, minutes_to_wait))
-        await self.bot.pin_message(msg)
-        for i in range(0, minutes_to_wait):
-            minutes_to_live  = minutes_to_wait - i
-            if minutes_to_live == 2:
-                try:
-                    await self.bot.send_message(channel, "@here please make sure to go into a group call and continue gaming. This channel will be deleted in {} minutes.".format(minutes_to_live))
-                except:
-                    continue
-            await asyncio.sleep(60)
-        await self.bot.delete_channel(channel)
+        await self.bot.say("Halp requested!")
     # End Commands
 
     # Errors

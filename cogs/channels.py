@@ -10,7 +10,7 @@ from .utils.data import Data
 import web.wsgi
 from django.utils import timezone
 from django.db import models
-from privatechannel.models import DiscordUser, Server, Channel, ServerUser
+from gaming.models import DiscordUser, Server, Channel, ServerUser
 
 class PrivateChannel:
     def __init__(self, bot):
@@ -48,7 +48,7 @@ class PrivateChannel:
         return ServerUser.objects.get_or_create(user=user, server=server)
 
     def get_channel(self, dchannel, user, server):
-        return Channel.objects.get_or_create(channel_id=dchannel.id, user=user, server=server, defaults={'name': dchannel.name})[0]
+        return Channel.objects.get_or_create(channel_id=dchannel.id, user=user, server=server, private=True, defaults={'name': dchannel.name})[0]
     # End methods
 
     # Events
@@ -79,13 +79,14 @@ class PrivateChannel:
         if not user:
             return
         try:
-            channel = Channel.objects.get(user=user, server=server)
+            channel = Channel.objects.get(user=user, server=server, private=True)
             dchannel = self.bot.get_channel(channel.channel_id)
             if dchannel:
                 await self.bot.say("Looks like you already have a channel {}, which is {}".format(duser.mention, dchannel.mention), delete_after=30)
             else:
+                message = "Channel ID {} was in my Database but is no longer on the Server {}".format(str(channel), str(channel.server))
                 channel.delete()
-                raise Channel.DoesNotExist
+                raise Channel.DoesNotExist(message)
         except Channel.DoesNotExist as e:
             everyone = discord.PermissionOverwrite(read_messages=False, send_messages=False, connect=False)
             user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True, connect=True, speak=True, manage_channels=True)

@@ -71,10 +71,13 @@ class Role(models.Model):
 
 class Channel(models.Model):
     server = models.ForeignKey('Server')
+    user = models.ForeignKey('DiscordUser', blank=True, null=True)
     channel_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     created_date = models.DateTimeField(default=timezone.now)
-    expire_date = models.DateTimeField(default=timezone.now)
+    expire_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    private = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.channel_id)
