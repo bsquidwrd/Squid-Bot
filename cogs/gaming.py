@@ -137,7 +137,7 @@ class Gaming:
             game_searches = game_searches.filter(user=user)
         if isinstance(game, Game):
             game_searches = game_searches.filter(game=game)
-        return game_searches.order_by('-pk')
+        return game_searches.order_by('created_date')
 
     def order_games(self, games):
         """ Takes a QuerySet of Game """
