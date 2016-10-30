@@ -8,7 +8,6 @@ from .utils import checks
 from .utils.data import Data
 
 import web.wsgi
-from django.utils import timezone
 from django.db import models
 from django.db.models import Count
 from django.db.models.query import QuerySet
@@ -132,7 +131,7 @@ class Gaming:
 
     def get_game_searches(self, user=None, game=None):
         """ Get GameSearch for the specified user and/or game. If none provided, return all """
-        game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=timezone.now())
+        game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=datetime.now())
         if isinstance(user, DiscordUser):
             game_searches = game_searches.filter(user=user)
         if isinstance(game, Game):
@@ -299,6 +298,7 @@ class Gaming:
 
         if created and game_search:
             await self.bot.say("{0.message.author.mention}: You've been added to the search queue for `{1.name}`!".format(ctx, game), delete_after=30)
+            await self.get_channel(ctx, game_search.game)
         elif game_search:
             await self.bot.say("{1.message.author.mention}: You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx), delete_after=30)
         elif time_ran_out:
@@ -473,7 +473,7 @@ class Gaming:
         if isinstance(msg, discord.Message):
             game_searches.update(cancelled=True)
             for server in self.bot.servers:
-                cancelled_message = '**All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now().strftime("%Y-%m-%d %H:%M"))
+                cancelled_message = '**All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, datetime.now().strftime("%Y-%m-%d %H:%M"))
                 cmsg = await self.bot.send_message(server.default_channel, cancelled_message)
             await self.bot.delete_message(msg)
         await self.bot.delete_message(question_message)

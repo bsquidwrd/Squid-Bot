@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils import timezone
+from datetime import datetime
 
 
 class DiscordUser(models.Model):
@@ -74,8 +74,8 @@ class Channel(models.Model):
     user = models.ForeignKey('DiscordUser', blank=True, null=True)
     channel_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
-    created_date = models.DateTimeField(default=timezone.now)
-    expire_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    created_date = models.DateTimeField(default=datetime.now)
+    expire_date = models.DateTimeField(default=datetime.now, blank=True, null=True)
     private = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
 
@@ -85,7 +85,7 @@ class Channel(models.Model):
     def save(self, *args, **kwargs):
         from datetime import timedelta
         if not self.id:
-            self.expire_date = timezone.now() + timedelta(minutes=15)
+            self.expire_date = datetime.now() + timedelta(minutes=15)
         super(Channel, self).save(*args, **kwargs)
 
     class Meta:
@@ -97,8 +97,8 @@ class GameSearch(models.Model):
     user = models.ForeignKey('DiscordUser')
     game = models.ForeignKey('Game')
     # server = models.ForeignKey('Server')
-    created_date = models.DateTimeField(default=timezone.now)
-    expire_date = models.DateTimeField(default=timezone.now)
+    created_date = models.DateTimeField(default=datetime.now)
+    expire_date = models.DateTimeField(default=datetime.now)
     cancelled = models.BooleanField(default=False)
     game_found = models.BooleanField(default=False)
 
@@ -108,7 +108,7 @@ class GameSearch(models.Model):
     def save(self, *args, **kwargs):
         from datetime import timedelta
         if not self.id:
-            self.expire_date = timezone.now() + timedelta(minutes=15)
+            self.expire_date = datetime.now() + timedelta(minutes=15)
         super(GameSearch, self).save(*args, **kwargs)
 
     class Meta:
