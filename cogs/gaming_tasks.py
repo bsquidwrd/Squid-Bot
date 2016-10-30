@@ -21,7 +21,7 @@ class GamingTasks:
     @asyncio.coroutine
     def run_tasks(bot):
         while True:
-            yield from asyncio.sleep(30)
+            yield from asyncio.sleep(15)
             channels = Channel.objects.filter(private=Faalse, expire_date__lte=datetime.datetime.now())
             for channel in channels:
                 try:
@@ -33,6 +33,7 @@ class GamingTasks:
                 finally:
                     channel.deleted = True
                     channel.save()
+                yield from asyncio.sleep(1)
 
 def setup(bot):
     loop = asyncio.get_event_loop()
