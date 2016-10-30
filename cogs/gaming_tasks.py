@@ -22,18 +22,22 @@ class GamingTasks:
     def run_tasks(bot):
         while True:
             yield from asyncio.sleep(15)
-            channels = Channel.objects.filter(private=Faalse, expire_date__lte=timezone.now())
-            for channel in channels:
-                try:
-                    c = yield from self.bot.get_channel(channel.channel_id)
-                    yield from self.bot.delete_channel(c)
-                except Exception as e:
-                    # Channel no longer exists on server
-                    pass
-                finally:
-                    channel.deleted = True
-                    channel.save()
-                yield from asyncio.sleep(1)
+            channels = Channel.objects.filter(private=False, expire_date__lte=timezone.now(), deleted=False)
+            if channels.count() >= 1:
+                for channel in channels:
+                    try:
+                        c = bot.get_channel(channel.channel_id)
+                        yield from bot.delete_channel(c)
+                    except Exception as e:
+                        # Channel no longer exists on server
+                        print(e)
+                    finally:
+                        channel.deleted = True
+                        channel.save()
+                    yield from asyncio.sleep(1)
+            else:
+                # No channels found to be deleted
+                pass
 
 def setup(bot):
     loop = asyncio.get_event_loop()
