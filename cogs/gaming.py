@@ -162,14 +162,17 @@ class Gaming:
         everyone = discord.PermissionOverwrite(read_messages=False, send_messages=False)
         user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
 
-        channel = await self.bot.create_channel(server, 'secret', (server.default_role, everyone), (server.me, user_perms))
-        mchannel = Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name, expire_date=expire_date)
+        channel = await self.bot.create_channel(server, game.name, (server.default_role, everyone), (server.me, user_perms))
+        mchannel = Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name, expire_date=(datetime.now() + timedelta(minutes=15)))
 
         for search in self.get_game_searches(game=game)[:5]:
             await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
+            search.game_found = True
+            search.save()
         time_to_delete = mchannel.expire_date.strftime("%Y-%m-%d %H:%M")
-        msg = await self.bot.send_message(channel, "This channel will be deleted at {} UTC ({} minutes from creation.)".format(time_to_delete, minutes_to_wait))
+        msg = await self.bot.send_message(channel, "This channel will be deleted at {} UTC ({} minutes from creation.)".format(time_to_delete, 15))
         await self.bot.pin_message(msg)
+        return mchannel
 
     # Events
     async def on_ready(self):
