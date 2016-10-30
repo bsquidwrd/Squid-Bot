@@ -1,9 +1,9 @@
 import os
 import asyncio
+from datetime import timedelta
+import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
-from datetime import datetime, timedelta
-import discord
 from .utils import checks
 from .utils.data import Data
 
@@ -11,6 +11,7 @@ import web.wsgi
 from django.db import models
 from django.db.models import Count
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel
 
 DISCORD_MSG_CHAR_LIMIT = 2000
@@ -131,7 +132,7 @@ class Gaming:
 
     def get_game_searches(self, user=None, game=None):
         """ Get GameSearch for the specified user and/or game. If none provided, return all """
-        game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=datetime.now())
+        game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=timezone.now())
         if isinstance(user, DiscordUser):
             game_searches = game_searches.filter(user=user)
         if isinstance(game, Game):
@@ -162,7 +163,7 @@ class Gaming:
         user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
 
         channel = await self.bot.create_channel(server, game.name, (server.default_role, everyone), (server.me, user_perms))
-        mchannel = Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name, expire_date=(datetime.now() + timedelta(minutes=15)))
+        mchannel = Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name, expire_date=(timezone.now() + timedelta(minutes=15)))
 
         for search in self.get_game_searches(game=game)[:5]:
             await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
@@ -473,7 +474,7 @@ class Gaming:
         if isinstance(msg, discord.Message):
             game_searches.update(cancelled=True)
             for server in self.bot.servers:
-                cancelled_message = '**All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, datetime.now().strftime("%Y-%m-%d %H:%M"))
+                cancelled_message = '**All active Searches have been cancelled by {} at {}**'.format(ctx.message.author.name, timezone.now().strftime("%Y-%m-%d %H:%M"))
                 cmsg = await self.bot.send_message(server.default_channel, cancelled_message)
             await self.bot.delete_message(msg)
         await self.bot.delete_message(question_message)

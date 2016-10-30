@@ -2,11 +2,11 @@ from discord.ext import commands
 from .utils import checks
 import asyncio
 import discord
-import datetime
 
 import web.wsgi
 from django.utils import timezone
 from django.db import models
+from django.utils import timezone
 from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel
 
 
@@ -22,7 +22,7 @@ class GamingTasks:
     def run_tasks(bot):
         while True:
             yield from asyncio.sleep(15)
-            channels = Channel.objects.filter(private=Faalse, expire_date__lte=datetime.datetime.now())
+            channels = Channel.objects.filter(private=Faalse, expire_date__lte=timezone.now())
             for channel in channels:
                 try:
                     c = yield from self.bot.get_channel(channel.channel_id)
