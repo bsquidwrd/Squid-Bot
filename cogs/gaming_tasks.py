@@ -25,9 +25,12 @@ class GamingTasks:
             channels = Channel.objects.filter(private=False, expire_date__lte=timezone.now(), deleted=False)
             if channels.count() >= 1:
                 for channel in channels:
+                    if channel is None:
+                        continue
                     try:
                         c = bot.get_channel(channel.channel_id)
-                        yield from bot.delete_channel(c)
+                        if c is not None:
+                            yield from bot.delete_channel(c)
                     except Exception as e:
                         # Channel no longer exists on server
                         print(e)
