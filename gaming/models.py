@@ -108,7 +108,7 @@ class GameSearch(models.Model):
     def save(self, *args, **kwargs):
         from datetime import timedelta
         if not self.id:
-            self.expire_date = timezone.now() + timedelta(minutes=30)
+            self.expire_date = timezone.now() + timedelta(minutes=15)
         super(GameSearch, self).save(*args, **kwargs)
 
     class Meta:
