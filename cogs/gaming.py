@@ -154,10 +154,13 @@ class Gaming:
             game_map[i+1] = game
         return game_map
 
-    async def get_channel(self, ctx, game):
+    async def create_game_channel(self, ctx, game, searches=None):
         """ Gets/Creates a channel for the game selected """
         server = ctx.message.server
         mserver = Server.objects.get(server_id=server.id)
+
+        if searches is None:
+            searches = self.get_game_searches(game=game)[:5]
 
         everyone = discord.PermissionOverwrite(read_messages=False, send_messages=False)
         user_perms = discord.PermissionOverwrite(read_messages=True, send_messages=True)
@@ -165,7 +168,7 @@ class Gaming:
         channel = await self.bot.create_channel(server, game.name, (server.default_role, everyone), (server.me, user_perms))
         mchannel = Channel.objects.create(server=mserver, channel_id=channel.id, name=channel.name, expire_date=(timezone.now() + timedelta(minutes=15)))
 
-        for search in self.get_game_searches(game=game)[:5]:
+        for search in searches:
             await self.bot.edit_channel_permissions(channel, channel.server.get_member(search.user.user_id), user_perms)
             search.game_found = True
             search.save()
@@ -299,7 +302,7 @@ class Gaming:
 
         if created and game_search:
             await self.bot.say("{0.message.author.mention}: You've been added to the search queue for `{1.name}`!".format(ctx, game), delete_after=30)
-            await self.get_channel(ctx, game_search.game)
+            await self.create_game_channel(ctx, game_search.game)
         elif game_search:
             await self.bot.say("{1.message.author.mention}: You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx), delete_after=30)
         elif time_ran_out:
