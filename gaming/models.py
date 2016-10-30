@@ -84,7 +84,7 @@ class Channel(models.Model):
 
     def save(self, *args, **kwargs):
         from datetime import timedelta
-        if not self.id:
+        if not self.pk and not self.private:
             self.expire_date = timezone.now() + timedelta(minutes=15)
         super(Channel, self).save(*args, **kwargs)
 
@@ -107,7 +107,7 @@ class GameSearch(models.Model):
 
     def save(self, *args, **kwargs):
         from datetime import timedelta
-        if not self.id:
+        if not self.pk:
             self.expire_date = timezone.now() + timedelta(minutes=15)
         super(GameSearch, self).save(*args, **kwargs)
 
