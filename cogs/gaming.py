@@ -299,6 +299,7 @@ class Gaming:
 
         if created and game_search:
             await self.bot.say("{0.message.author.mention}: You've been added to the search queue for `{1.name}`!".format(ctx, game), delete_after=30)
+            await self.get_channel(ctx, game_search.game)
         elif game_search:
             await self.bot.say("{1.message.author.mention}: You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx), delete_after=30)
         elif time_ran_out:
