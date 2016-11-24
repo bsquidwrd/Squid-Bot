@@ -327,12 +327,14 @@ class Gaming:
             await self.bot.delete_message(question_message)
 
         if isinstance(game, Game):
+            # ToDo: Ask the user if they want to join a currently (non-full) game group
+            # or if they want to start their own search
+            # Somehow limit the number of people per group to 5 (or some other good number)
             current_searches = self.get_game_searches(game=game)
             if current_searches.count() == 0:
                 game_search, created = self.create_game_search(user, game)
             else:
                 pass
-                #changeme
         log_item.save()
 
         if created and game_search:
