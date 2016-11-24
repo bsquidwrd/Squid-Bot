@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser, Channel
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser, Channel, Task, Log
 
 
 class DiscordUserAdmin(admin.ModelAdmin):
@@ -45,6 +45,7 @@ class GameUserAdmin(admin.ModelAdmin):
     list_display = ('get_display_name',)
     list_display_links = ('get_display_name',)
     search_fields = ('user__name', 'user__user_id', 'game__name',)
+    raw_id_fields = ('user', 'game',)
 
 
 class ServerAdmin(admin.ModelAdmin):
@@ -75,6 +76,7 @@ class RoleAdmin(admin.ModelAdmin):
     list_display = ('get_display_name', 'role_id', 'name',)
     list_display_links = ('get_display_name',)
     search_fields = ('server__server_id', 'role_id', 'name',)
+    raw_id_fields = ('server',)
 
 
 class GameSearchAdmin(admin.ModelAdmin):
@@ -99,6 +101,7 @@ class GameSearchAdmin(admin.ModelAdmin):
     # readonly_fields = ('user', 'game')
     ordering = ('cancelled', '-created_date', '-expire_date')
     actions = ['cancel_searches']
+    raw_id_fields = ('user', 'game',)
 
 
 class ServerUserAdmin(admin.ModelAdmin):
@@ -114,6 +117,7 @@ class ServerUserAdmin(admin.ModelAdmin):
     list_display = ('get_display_name',)
     list_display_links = ('get_display_name',)
     search_fields = ('user__name', 'user__user_id', 'server__server_id', 'server__name',)
+    raw_id_fields = ('server','user',)
 
 
 class ChannelAdmin(admin.ModelAdmin):
@@ -123,13 +127,50 @@ class ChannelAdmin(admin.ModelAdmin):
     get_display_name.short_description = 'Display Name'
 
     fieldsets = [
-        (None, {'fields': ['name', 'channel_id', 'server', 'user', 'created_date', 'expire_date', 'private', 'deleted',]}),
+        (None, {'fields': ['name', 'channel_id', 'server', 'user', 'game', 'created_date', 'expire_date', 'private', 'deleted', 'game_channel',]}),
     ]
 
-    list_display = ('get_display_name', 'server', 'user', 'created_date', 'expire_date', 'private', 'deleted')
+    date_hierarchy = 'created_date'
+    list_display = ('get_display_name', 'server', 'user', 'game', 'created_date', 'expire_date', 'private', 'deleted', 'game_channel')
     list_display_links = ('get_display_name',)
-    search_fields = ('name', 'channel_id', 'user__name', 'user__user_id', 'server__server_id', 'server__name',)
+    search_fields = ('name', 'channel_id', 'user__name', 'user__user_id', 'server__server_id', 'server__name', 'game__name', 'game__url',)
     ordering = ('deleted', 'private', '-created_date', '-expire_date', 'name', 'channel_id')
+    raw_id_fields = ('server', 'user', 'game',)
+
+
+class TaskAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    date_hierarchy = 'created_date'
+    list_display = ('get_display_name', 'created_date', 'expire_date', 'cancelled', 'completed')
+    list_display_links = ('get_display_name',)
+    search_fields = ['user__name', 'user__user_id', 'server__name', 'server__server_id']
+    ordering = ['-created_date']
+    fieldsets = [
+        (None, {'fields': ['server', 'user', 'task', 'created_date', 'expire_date', 'cancelled', 'completed']}),
+        ('Task Information', {'fields': ['task_info', 'game', 'channel']}),
+    ]
+    raw_id_fields = ('server', 'user',)
+
+
+class LogAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    date_hierarchy = 'timestamp'
+    list_display = ('get_display_name', 'timestamp', 'message_token', 'message')
+    list_display_links = ('get_display_name',)
+    search_fields = ['message_token', 'message']
+    ordering = ['-timestamp']
+    fieldsets = [
+        (None, {'fields': ['timestamp', 'message_token', 'email', 'subject', 'body', 'message']}),
+    ]
+    readonly_fields = ('timestamp', 'message_token',)
 
 
 admin.site.register(DiscordUser, DiscordUserAdmin)
@@ -140,3 +181,5 @@ admin.site.register(Role, RoleAdmin)
 admin.site.register(GameSearch, GameSearchAdmin)
 admin.site.register(ServerUser, ServerUserAdmin)
 admin.site.register(Channel, ChannelAdmin)
+admin.site.register(Task, TaskAdmin)
+admin.site.register(Log, LogAdmin)

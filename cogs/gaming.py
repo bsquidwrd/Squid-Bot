@@ -6,13 +6,14 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from .utils import checks
 from .utils.data import Data
+from .utils.formats import logify_exception_info, logify_object
 
 import web.wsgi
 from django.db import models
 from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
-from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel
+from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel, Task, Log
 
 DISCORD_MSG_CHAR_LIMIT = 2000
 
@@ -80,13 +81,14 @@ class Gaming:
             pass
         return paginate(formatted_message, reserve=reserve)[page]
 
-    async def game_user_beautify(self, game, user, reserve=0, page=0):
+    async def game_user_beautify(self, game, server, user, reserve=0, page=0):
         """
         Return a message of all users who play a specific game ready for displaying all pretty like
         """
         formatted_message = '**It doesn\'t look like anyone has played `{0.name}`, be one of the first by starting to play now!**'.format(game)
         try:
-            game_users = GameUser.objects.filter(game=game).exclude(user=user)
+            user_pks = [s.user.pk for s in ServerUser.objects.filter(server=server)]
+            game_users = GameUser.objects.filter(game=game, user__pk__in=user_pks).exclude(user=user)
             if game_users.count() >= 1:
                 formatted_message = 'The following people have played `{1.name}`:\n```'.format(game_users.count(), game)
                 for gu in game_users:
@@ -100,12 +102,18 @@ class Gaming:
     def populate_info(self):
         """ Populate all users and servers """
         for server in self.bot.servers:
-            s, created = Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})
+            s = self.get_server(server)
             for user in server.members:
                 if user.bot:
                     continue
                 u = self.get_user(user)
                 self.get_server_user(u, s)
+
+    def get_server(self, server):
+        """
+        Returns a Server object after getting or creating the server
+        """
+        return Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})[0]
 
     def get_user(self, member):
         """
@@ -130,13 +138,17 @@ class Gaming:
             created = True
         return (game_search, created)
 
-    def get_game_searches(self, user=None, game=None):
+    def get_game_searches(self, user=None, game=None, server=None):
         """ Get GameSearch for the specified user and/or game. If none provided, return all """
         game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=timezone.now())
         if isinstance(user, DiscordUser):
             game_searches = game_searches.filter(user=user)
         if isinstance(game, Game):
             game_searches = game_searches.filter(game=game)
+        if isinstance(server, Server):
+            server_users = ServerUser.objects.filter(server=server)
+            user_ids = [u.user.pk for u in server_users]
+            game_searches = game_searches.filter(user__pk__in=user_ids)
         return game_searches.order_by('created_date')
 
     def order_games(self, games):
@@ -184,14 +196,27 @@ class Gaming:
 
     async def on_member_join(self, member):
         """ A new member has joined, do stuff with them """
-        self.get_user(member)
+        server = self.get_server(member.server)
+        user = self.get_user(member)
 
     async def on_member_remove(self, member):
         """ A member has been kicked/banned or has left a server, do something """
-        pass
+        server = self.get_server(member.server)
+        user = self.get_user(member)
+        server_users = ServerUser.objects.filter(user=user, server=server)
+        log_item = Log(message="Deleting ServerUser objects for {}\n\n".format(user))
+        for server_user in server_users:
+            try:
+                server_user.delete()
+                delete_message = "- Deleted user {} for server {}".format(user, server)
+            except Exception as e:
+                delete_message = "- Could not delete user {} for server {}\n{}".format(user, server, e)
+            log_item.message += "{}\n".format(delete_message)
+        log_item.save()
 
     async def on_member_update(self, before, after):
         """ This is to populate games and users automatically """
+        server = self.get_server(after.server)
         user = self.get_user(after)
         if not user:
             return
@@ -238,11 +263,14 @@ class Gaming:
         await self.bot.delete_message(ctx.message)
 
     @commands.command(name='lfg', pass_context=True)
-    async def looking_for_game(self, ctx, *, game_search_key: str = None, page_number: str = None):
+    async def looking_for_game(self, ctx, game_search_key: str = None, page_number: str = None):
         """Used when users want to play a game with others
         Example: ?lfg overwatch"""
         user = self.get_user(ctx.message.author)
         games = [game for game in Game.objects.all()]
+        server = self.get_server(ctx.message.server)
+
+        log_item = Log.objects.create(message="Log item for {} on {} searching for {}".format(user, server, game_search_key))
 
         if not user:
             return
@@ -268,8 +296,7 @@ class Gaming:
                     if game not in games:
                         games.append(game)
         if len(games) == 1:
-            game = games[1]
-            game_search, created = self.create_game_search(user, game)
+            game = games[0]
         else:
             games = self.map_games(games)
             msg = False
@@ -294,15 +321,24 @@ class Gaming:
                         possible_game = Game.objects.filter(name__icontains=content)
                     if possible_game.count() == 1:
                         game = possible_game[0]
-                        game_search, created = self.create_game_search(user, game)
                 except Exception as e:
-                    print(e)
+                    log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
                 await self.bot.delete_message(msg)
             await self.bot.delete_message(question_message)
 
+        if isinstance(game, Game):
+            current_searches = self.get_game_searches(game=game)
+            if current_searches.count() == 0:
+                game_search, created = self.create_game_search(user, game)
+            else:
+                pass
+                #changeme
+        log_item.save()
+
         if created and game_search:
             await self.bot.say("{0.message.author.mention}: You've been added to the search queue for `{1.name}`!".format(ctx, game), delete_after=30)
-            # await self.create_game_channel(ctx, game_search.game)
+        elif game_found:
+            await self.bot.say("{0.message.author.mention}: You've been added to the current group `{1.name}`!".format(ctx, game), delete_after=30)
         elif game_search:
             await self.bot.say("{1.message.author.mention}: You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx), delete_after=30)
         elif time_ran_out:
@@ -315,7 +351,10 @@ class Gaming:
     async def looking_for_game_remove(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Stop searching for a game"""
         user = self.get_user(ctx.message.author)
+        server = self.get_server(ctx.message.server)
         games_removed = []
+
+        log_item = Log.objects.create(message="Log item for {} on {} trying to stop searching for {}".format(user, server, game_search_key))
 
         if not user:
             return
@@ -379,11 +418,12 @@ class Gaming:
                             games_removed = [game]
                             game_search_cancelled = True
                     except Exception as e:
-                        print(e)
+                        log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
                     await self.bot.delete_message(msg)
                 await self.bot.delete_message(question_message)
             else:
                 no_game_searches = True
+        log_item.save()
 
         if game_search_cancelled:
             await self.bot.say("{0.message.author.mention}: You've stopped searching for the following game(s):\n{1}".format(ctx, await self.game_beautify(games_removed, available=False)), delete_after=30)
@@ -399,7 +439,10 @@ class Gaming:
     async def who_plays(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """See who has played a certain game in the past"""
         user = self.get_user(ctx.message.author)
+        server = self.get_server(ctx.message.server)
         games = Game.objects.all()
+
+        log_item = Log.objects.create(message="Log item for {} on {} searching for {}".format(user, server, game_search_key))
 
         if not user:
             return
@@ -413,7 +456,7 @@ class Gaming:
                 page = int(page_number[1::]) - 1
 
         if game_search_key:
-            current_searches = self.get_game_searches(user=user)
+            current_searches = self.get_game_searches(user=user, server=server)
             current_searches_games = [search.game for search in current_searches]
             try:
                 possible_games = Game.objects.filter(pk=int(game_search_key))
@@ -447,15 +490,16 @@ class Gaming:
                     if possible_game.count() == 1:
                         game = possible_game[0]
                 except Exception as e:
-                    print(e)
+                    log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
                 await self.bot.delete_message(msg)
             else:
                 time_ran_out = True
             await self.bot.delete_message(question_message)
+        log_item.save()
 
         if game:
             temp_message = '{0.message.author.mention}\n'.format(ctx)
-            await self.bot.say('{}{}'.format(temp_message, await self.game_user_beautify(game, user, reserve=len(temp_message), page=page)), delete_after=30)
+            await self.bot.say('{}{}'.format(temp_message, await self.game_user_beautify(game, server, user, reserve=len(temp_message), page=page)), delete_after=30)
         elif time_ran_out:
             await self.bot.say('Whoops... looks like your time ran out {0.message.author.mention}. Please re-run the command and try again.'.format(ctx), delete_after=30)
         else:
