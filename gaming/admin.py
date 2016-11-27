@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser, Channel, Task, Log
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser, Channel, Task, Log, Message
 
 
 class DiscordUserAdmin(admin.ModelAdmin):
@@ -173,6 +173,29 @@ class LogAdmin(admin.ModelAdmin):
     readonly_fields = ('timestamp', 'message_token',)
 
 
+class MessageAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    def get_content(self, obj):
+        extra = ''
+        if len(obj.content) > 50:
+            extra = '...'
+        return '{}{}'.format(obj.content[:50], extra)
+
+    date_hierarchy = 'timestamp'
+    list_display = ('get_display_name', 'timestamp', 'message_id', 'get_content')
+    list_display_links = ('get_display_name',)
+    search_fields = ['server__server_id', 'server__name', 'channel__channel_id', 'channel__name', 'user__user_id', 'user__name', 'content', 'message_id']
+    ordering = ['-timestamp']
+    fieldsets = [
+        (None, {'fields': ['timestamp', 'message_id', 'server', 'channel', 'user', 'content']}),
+    ]
+    raw_id_fields = ('server', 'channel', 'user',)
+
+
 admin.site.register(DiscordUser, DiscordUserAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(GameUser, GameUserAdmin)
@@ -183,3 +206,4 @@ admin.site.register(ServerUser, ServerUserAdmin)
 admin.site.register(Channel, ChannelAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Log, LogAdmin)
+admin.site.register(Message, MessageAdmin)

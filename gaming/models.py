@@ -6,13 +6,14 @@ from django.utils import timezone
 
 
 class DiscordUser(models.Model):
-    user_id = models.CharField(max_length=255, unique=True)
-    name = models.CharField(max_length=255)
+    user_id = models.CharField(max_length=4000, unique=True)
+    name = models.CharField(max_length=4000)
+    bot = models.BooleanField(default=False)
 
     def __str__(self):
         display_name = self.user_id
         if self.name:
-            display_name = '{} ({})'.format(self.name, self.user_id)
+            display_name = '{} ({})'.format(self.name, 'Bot' if self.bot else 'User')
         return display_name
 
     class Meta:
@@ -21,7 +22,7 @@ class DiscordUser(models.Model):
 
 
 class Game(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=4000)
     url = models.URLField(blank=True, null=True, default="")
 
     def __str__(self):
@@ -45,8 +46,8 @@ class GameUser(models.Model):
 
 
 class Server(models.Model):
-    server_id = models.CharField(max_length=255, unique=True)
-    name = models.CharField(max_length=255, blank=True, null=True, default="")
+    server_id = models.CharField(max_length=4000, unique=True)
+    name = models.CharField(max_length=4000, blank=True, null=True, default="")
 
     def __str__(self):
         display_name = '{}'.format(self.server_id)
@@ -61,8 +62,8 @@ class Server(models.Model):
 
 class Role(models.Model):
     server = models.ForeignKey('Server')
-    role_id = models.CharField(max_length=255, unique=True)
-    name = models.CharField(max_length=255)
+    role_id = models.CharField(max_length=4000, unique=True)
+    name = models.CharField(max_length=4000)
 
     def __str__(self):
         return '{} ({})'.format(self.name, str(self.server))
@@ -76,8 +77,8 @@ class Channel(models.Model):
     server = models.ForeignKey('Server')
     user = models.ForeignKey('DiscordUser', blank=True, null=True)
     game = models.ForeignKey('Game', blank=True, null=True)
-    channel_id = models.CharField(max_length=255, unique=True)
-    name = models.CharField(max_length=255)
+    channel_id = models.CharField(max_length=4000, unique=True)
+    name = models.CharField(max_length=4000)
     created_date = models.DateTimeField(default=timezone.now)
     expire_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
     private = models.BooleanField(default=False)
@@ -96,6 +97,18 @@ class Channel(models.Model):
     class Meta:
         verbose_name = "Channel"
         verbose_name_plural = "Channels"
+
+
+class Message(models.Model):
+    server = models.ForeignKey('Server')
+    channel = models.ForeignKey('Channel')
+    user = models.ForeignKey('DiscordUser')
+    timestamp = models.DateTimeField()
+    content = models.TextField()
+    message_id = models.CharField(max_length=4000)
+
+    def __str__(self):
+        return '{} - {} - {} - {}'.format(self.timestamp, self.user, self.channel, self.server)
 
 
 class GameSearch(models.Model):
@@ -165,8 +178,8 @@ class Log(models.Model):
     message_token = models.CharField(blank=True, null=True, max_length=50)
     message = models.TextField(default="")
     email = models.BooleanField(default=False)
-    subject = models.CharField(max_length=255, blank=True, null=True, default=None)
-    body = models.CharField(max_length=255, blank=True, null=True, default=None)
+    subject = models.CharField(max_length=4000, blank=True, null=True, default=None)
+    body = models.CharField(max_length=4000, blank=True, null=True, default=None)
 
     def __str__(self):
         return "[%s] - %s" % (self.timestamp, self.message_token)
