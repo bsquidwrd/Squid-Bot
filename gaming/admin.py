@@ -127,7 +127,7 @@ class ChannelAdmin(admin.ModelAdmin):
     get_display_name.short_description = 'Display Name'
 
     fieldsets = [
-        (None, {'fields': ['name', 'channel_id', 'server', 'user', 'game', 'created_date', 'expire_date', 'private', 'deleted', 'game_channel',]}),
+        (None, {'fields': ['name', 'channel_id', 'server', 'user', 'game', 'created_date', 'expire_date', 'private', 'deleted', 'game_channel','warning_sent',]}),
     ]
 
     date_hierarchy = 'created_date'

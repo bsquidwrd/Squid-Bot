@@ -80,17 +80,18 @@ class Channel(models.Model):
     channel_id = models.CharField(max_length=4000, unique=True)
     name = models.CharField(max_length=4000)
     created_date = models.DateTimeField(default=timezone.now)
-    expire_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    expire_date = models.DateTimeField(blank=True, null=True)
     private = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     game_channel = models.BooleanField(default=False)
+    warning_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.channel_id)
 
     def save(self, *args, **kwargs):
         from datetime import timedelta
-        if not self.pk and not self.private:
+        if not self.pk and not self.expire_date and not self.private and not self.game_channel:
             self.expire_date = timezone.now() + timedelta(minutes=15)
         super(Channel, self).save(*args, **kwargs)
 

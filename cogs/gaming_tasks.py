@@ -23,18 +23,18 @@ class GamingTasks:
     def run_tasks(bot):
         while True:
             yield from asyncio.sleep(5)
-            channels = Channel.objects.filter(private=False, expire_date__lte=timezone.now(), deleted=False)
+            channels = Channel.objects.filter(private=False, game_channel=True, expire_date__lte=timezone.now(), deleted=False)
             if channels.count() >= 1:
                 for channel in channels:
                     if channel is None:
                         continue
                     channel_log = Log(message='Deleting channel {}\n\n'.format(channel))
                     try:
-                        c = bot.get_channel(channel.channel_id)
+                        c = yield from bot.get_channel(channel.channel_id)
                         if c is not None:
                             try:
                                 yield from bot.delete_channel(c)
-                                channel_log.message += '- Succes'
+                                channel_log.message += '- Success'
                             except Exception as e:
                                 channel_log.message += '- Failure\n\n{}'.format(logify_exception_info(e))
                     except Exception as e:

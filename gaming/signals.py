@@ -1,6 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from gamein.models import Log
+
 
 @receiver(pre_save, sender=Log)
 def generate_log_token(sender, instance, *args, **kwargs):

@@ -104,8 +104,6 @@ class Gaming:
         for server in self.bot.servers:
             s = self.get_server(server)
             for user in server.members:
-                if user.bot:
-                    continue
                 u = self.get_user(user)
                 self.get_server_user(u, s)
 
@@ -120,9 +118,7 @@ class Gaming:
         Returns a DiscordUser object after getting or creating the user
         Does not create users for Bots
         """
-        if member.bot:
-            return False
-        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
+        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name, 'bot': member.bot})[0]
 
     def get_server_user(self, user, server):
         return ServerUser.objects.get_or_create(user=user, server=server)[0]
@@ -165,6 +161,11 @@ class Gaming:
         for i, game in enumerate(games):
             game_map[i+1] = game
         return game_map
+
+    def get_game_channels(game):
+        if not isinstance(game, Game):
+            return False
+        return = Channel.objects.filter(game=game, private=False, game_channel=True, deleted=False, expire_date__gte=timezone.now()).order_by('-expire_date')
 
     async def create_game_channel(self, ctx, game, searches=None):
         """ Gets/Creates a channel for the game selected """
@@ -218,7 +219,7 @@ class Gaming:
         """ This is to populate games and users automatically """
         server = self.get_server(after.server)
         user = self.get_user(after)
-        if not user:
+        if not user or after.bot:
             return
         if before.game:
             member = before
@@ -241,6 +242,11 @@ class Gaming:
     async def list_games(self, ctx, *, game_search_key: str = None, page_number: str = None):
         """Get a list of all the games
         Example: ?games over p2"""
+        server = self.get_server(self.get_server(ctx.message.server))
+        user = self.get_user(self.get_user(ctx.message.author))
+        if not user or user.bot:
+            return
+
         page = 0
         if page_number:
             if page_number.lower().startswith('p'):
@@ -272,7 +278,7 @@ class Gaming:
 
         log_item = Log.objects.create(message="Log item for {} on {} searching for {}".format(user, server, game_search_key))
 
-        if not user:
+        if not user or user.bot:
             return
 
         page = 0
@@ -282,6 +288,7 @@ class Gaming:
 
         game_search = False
         created = False
+        create_search = False
 
         if game_search_key:
             current_searches = self.get_game_searches(user=user)
@@ -324,6 +331,8 @@ class Gaming:
                 except Exception as e:
                     log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
                 await self.bot.delete_message(msg)
+            else:
+                time_ran_out = True
             await self.bot.delete_message(question_message)
 
         if isinstance(game, Game):
@@ -331,10 +340,40 @@ class Gaming:
             # or if they want to start their own search
             # Somehow limit the number of people per group to 5 (or some other good number)
             current_searches = self.get_game_searches(game=game)
+            current_game_channels = self.get_game_channels(game=game)
+            
             if current_searches.count() == 0:
-                game_search, created = self.create_game_search(user, game)
+                create_search = True
             else:
-                pass
+                msg = False
+                temp_message = '{0.message.author.mention}: There is a group with less than 5 people for {1.name}, would you like to join them?\n_Please only type in `yes` or `no`_\n_You have 30 seconds to respond_\n'.format(ctx, game)
+                question_message = await self.bot.say(temp_message)
+                time_ran_out = False
+                def yesno_check(msg):
+                    try:
+                        return msg.content.strip().lower() in ['yes', 'no']
+                    except:
+                        return False
+                msg = await self.bot.wait_for_message(author=ctx.message.author, check=yesno_check, timeout=30)
+                if isinstance(msg, discord.Message):
+                    try:
+                        log_item.message += "Response from user about joining existing group: '{}'".format(message.content)
+                        content = msg.content.strip().lower()
+                        if content == 'yes':
+                            # Put the user with the group already found
+                        elif content == 'no':
+                            # They said no, so start a new search
+                            create_search = True
+                    except Exception as e:
+                        log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
+                    await self.bot.delete_message(msg)
+                else:
+                    time_ran_out = True
+                await self.bot.delete_message(question_message)
+
+        if create_search:
+            game_search, created = self.create_game_search(user, game)
+        log_item.message += "game_search: {0}\ncreated: {1}\ngame_found: {2}\ntime_ran_out: {3}\ncreate_search: {4}\n".format(game_search, created, game_found, time_ran_out, create_search)
         log_item.save()
 
         if created and game_search:
@@ -342,7 +381,7 @@ class Gaming:
         elif game_found:
             await self.bot.say("{0.message.author.mention}: You've been added to the current group `{1.name}`!".format(ctx, game), delete_after=30)
         elif game_search:
-            await self.bot.say("{1.message.author.mention}: You're already in the queue for `{0.name}`. If you would like to stop looking for this game, type {1.prefix}lfgstop {0.pk}".format(game, ctx), delete_after=30)
+            await self.bot.say("{0.message.author.mention}: You're already in the queue for `{1.name}`. If you would like to stop looking for this game, type {0.prefix}lfgstop {1.name}".format(ctx, gaame), delete_after=30)
         elif time_ran_out:
             await self.bot.say('Whoops... looks like your time ran out `{0.message.author.mention}`. Please re-run the command and try again.'.format(ctx), delete_after=30)
         else:
@@ -358,7 +397,7 @@ class Gaming:
 
         log_item = Log.objects.create(message="Log item for {} on {} trying to stop searching for {}".format(user, server, game_search_key))
 
-        if not user:
+        if not user or user.bot:
             return
 
         page = 0
@@ -446,7 +485,7 @@ class Gaming:
 
         log_item = Log.objects.create(message="Log item for {} on {} searching for {}".format(user, server, game_search_key))
 
-        if not user:
+        if not user or user.bot:
             return
 
         time_ran_out = False
