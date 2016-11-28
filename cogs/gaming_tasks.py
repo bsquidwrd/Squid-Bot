@@ -25,14 +25,15 @@ class GamingTasks:
             try:
                 yield from asyncio.sleep(5)
 
-                log_item = Log(message="This should not be saved, ever unless something went wrong", email=True)
+                log_item = Log(message="This should not be saved, ever, unless something went wrong", email=True)
 
                 channels = Channel.objects.filter(private=False, game_channel=True, expire_date__lte=timezone.now(), deleted=False)
                 if channels.count() >= 1:
+                    log_item = Log.objects.create(message="Running task to prune channels:\n{}\n\n".format(logify_object(channels)))
                     for channel in channels:
                         if channel is None:
                             continue
-                        log_item = Log.objects.create(message='Deleting channel {}\n\n'.format(channel))
+                        log_item.message += 'Deleting channel {}\n\n'.format(channel)
                         try:
                             c = yield from bot.get_channel(channel.channel_id)
                             if c is not None:
@@ -47,13 +48,14 @@ class GamingTasks:
                         finally:
                             channel.deleted = True
                             channel.save()
-                        log_item.save()
+                        log_item.message += "\n\n"
                         yield from asyncio.sleep(1)
+                    log_item.save()
                 else:
                     # No channels found to be deleted
                     pass
 
-                log_item = Log(message="This should not be saved, ever unless something went wrong", email=True)
+                log_item = Log(message="This should not be saved, ever, unless something went wrong", email=True)
 
                 for server in Server.objects.all():
                     # This will be to populate Channels and Users
@@ -88,36 +90,40 @@ class GamingTasks:
                                     log_item.message += "\n"
                             except Exception as e:
                                 log_item.message += "- Failed: {}\n".format(logify_exception_info(e))
+                            finally:
+                                log_item.message += "- Finished channel processing\n"
                         log_item.message += "\n"
                     except Exception as e:
                         log_item.message += "- Failed: {}\n".format(logify_exception_info(e))
                     finally:
                         log_item.save()
 
-                log_item = Log(message="This should not be saved, ever unless something went wrong", email=True)
+                log_item = Log(message="This should not be saved, ever, unless something went wrong", email=True)
 
                 tasks = Task.objects.filter(cancelled=False, completed=False, expire_date__lte=timezone.now())
                 if tasks.count() >= 1:
+                    log_item = Log.objects.create(message = "Starting to process tasks\n{}\n\n".format(logify_object(tasks)))
                     for task in tasks:
-                        log_item = Log(message='Running task for {} at {}\n'.format(task.user, timezone.now()))
+                        log_item.message += 'Running task for {} at {}\n'.format(task.user, timezone.now())
                         if task.task == Task.ADD_TO_GAME_CHAT:
                             try:
                                 user = DiscordUser.objects.get(pk=task.user.pk)
                                 game = Game.objects.get(pk=task.game.pk)
                                 channel = Channel.objects.get(pk=task.channel.pk)
-                                log_item.message += 'Game: {}\nChannel: {}\nUser: {}\nTask:\n{}\n\n'.format(user, game, channel, logify_object(task))
+                                log_item.message += 'Game: {}\nChannel: {}\nUser: {}\nTask PK: {}\n\n'.format(user, game, channel, task.pk)
                             except Game.DoesNotExist as e:
-                                log_item.message += 'Error finding game for task.\n{}'.format(logify_exception_info(e))
+                                log_item.message += '- Error finding game for task.\n{}'.format(logify_exception_info(e))
                             except Channel.DoesNotExist as e:
-                                log_item.message += 'Error finding channel for game {}\n{}'.format(game, logify_exception_info(e))
+                                log_item.message += '- Error finding channel for game {}\n{}'.format(game, logify_exception_info(e))
                             except Exception as e:
-                                log_item.message += 'Unknown error happened\n{}'.format(logify_exception_info(e))
+                                log_item.message += '- Unknown error happened\n{}'.format(logify_exception_info(e))
                         else:
                             # Not really a task for some reason
-                            log_item.message += 'I don\'t recognize the task \'{}\'...'.format()
+                            log_item.message += '- I don\'t recognize the task type \'{}\'...'.format()
+                        log_item.message += '- Finished processing task\n'
                         log_item.save()
             except Exception as e:
-                log_item = Log.objects.create(message="Error running task:\n{}".format(logify_exception_info(e)))
+                log_item = Log.objects.create(message="- Error running task:\n{}".format(logify_exception_info(e)))
             finally:
                 log_item.save()
 
