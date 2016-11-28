@@ -13,7 +13,7 @@ from django.db import models
 from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
-from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel, Task, Log
+from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel, Task, Log, ChannelUser
 
 DISCORD_MSG_CHAR_LIMIT = 2000
 
@@ -165,7 +165,7 @@ class Gaming:
     def get_game_channels(game):
         if not isinstance(game, Game):
             return False
-        return = Channel.objects.filter(game=game, private=False, game_channel=True, deleted=False, expire_date__gte=timezone.now()).order_by('-expire_date')
+        return Channel.objects.filter(game=game, private=False, game_channel=True, deleted=False, expire_date__gte=timezone.now()).order_by('-expire_date')
 
     async def create_game_channel(self, ctx, game, searches=None):
         """ Gets/Creates a channel for the game selected """
@@ -341,7 +341,21 @@ class Gaming:
             # Somehow limit the number of people per group to 5 (or some other good number)
             current_searches = self.get_game_searches(game=game)
             current_game_channels = self.get_game_channels(game=game)
-            
+            game_channel = None
+
+            for channel in current_game_channels:
+                c = await self.bot.get_channel(channel.channel_id)
+                if c is None:
+                    channel.deleted = True
+                    channel.save()
+                    continue
+                users = ChannelUsers.objects.filter(channel=channel)
+                if users.count() > 5:
+                    continue
+                else:
+                    game_channel = channel
+                    break
+
             if current_searches.count() == 0:
                 create_search = True
             else:
@@ -357,13 +371,16 @@ class Gaming:
                 msg = await self.bot.wait_for_message(author=ctx.message.author, check=yesno_check, timeout=30)
                 if isinstance(msg, discord.Message):
                     try:
-                        log_item.message += "Response from user about joining existing group: '{}'".format(message.content)
+                        log_item.message += "Response from user about joining existing group: '{}'\n".format(message.content)
                         content = msg.content.strip().lower()
                         if content == 'yes':
                             # Put the user with the group already found
+                            pass
                         elif content == 'no':
                             # They said no, so start a new search
                             create_search = True
+                        else:
+                            raise Exception("Content is not equal to yes/no")
                     except Exception as e:
                         log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
                     await self.bot.delete_message(msg)
