@@ -100,6 +100,18 @@ class Channel(models.Model):
         verbose_name_plural = "Channels"
 
 
+class ChannelUser(models.Model):
+    channel = models.ForeignKey('Channel')
+    user = models.ForeignKey('DiscordUser')
+
+    def __str__(self):
+        return '{} - {}'.format(self.channel, self.user)
+
+    class Meta:
+        verbose_name = "Channel User"
+        verbose_name_plural = "Channel Users"
+
+
 class Message(models.Model):
     server = models.ForeignKey('Server')
     channel = models.ForeignKey('Channel')

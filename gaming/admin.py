@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser, Channel, Task, Log, Message
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, ServerUser, Channel, Task, Log, Message, ChannelUser
 
 
 class DiscordUserAdmin(admin.ModelAdmin):
@@ -138,6 +138,22 @@ class ChannelAdmin(admin.ModelAdmin):
     raw_id_fields = ('server', 'user', 'game',)
 
 
+class ChannelUserAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    fieldsets = [
+        (None, {'fields': ['channel', 'user',]}),
+    ]
+
+    list_display = ('get_display_name',)
+    list_display_links = ('get_display_name',)
+    search_fields = ('channel__channel_id', 'channel__name', 'user__user_id', 'user__name',)
+    raw_id_fields = ('user', 'channel',)
+
+
 class TaskAdmin(admin.ModelAdmin):
     def get_display_name(self, obj):
         return str(obj)
@@ -207,3 +223,4 @@ admin.site.register(Channel, ChannelAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Log, LogAdmin)
 admin.site.register(Message, MessageAdmin)
+admin.site.register(ChannelUser, ChannelUserAdmin)
