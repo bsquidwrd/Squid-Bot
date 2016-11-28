@@ -4,6 +4,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from gaming.models import Log
+from gaming.utils.formats import logify_exception_info
 
 
 @receiver(pre_save, sender=Log)
