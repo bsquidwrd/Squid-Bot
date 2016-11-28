@@ -91,6 +91,7 @@ class GamingTasks:
                     finally:
                         log_item.save()
 
+                log_item = None
 
                 tasks = Task.objects.filter(cancelled=False, completed=False, expire_date__lte=timezone.now())
                 if tasks.count() >= 1:
