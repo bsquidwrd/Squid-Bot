@@ -197,6 +197,11 @@ class Log(models.Model):
     def __str__(self):
         return "[%s] - %s" % (self.timestamp, self.message_token)
 
+    def save(self, *args, **kwargs):
+        if self.message_token is None or self.message_token == '':
+            self.generate_log_token(save=False)
+        super(Log, self).save(*args, **kwargs)
+
     def generate_log_token(self, save=True):
         try:
             if self.message_token is None or self.message_token == '':
