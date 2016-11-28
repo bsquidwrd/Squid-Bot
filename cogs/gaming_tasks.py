@@ -8,7 +8,7 @@ import web.wsgi
 from django.utils import timezone
 from django.db import models
 from django.utils import timezone
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log, ChannelUser
 
 
 class GamingTasks:
@@ -48,6 +48,46 @@ class GamingTasks:
             else:
                 # No channels found to be deleted
                 pass
+
+
+            for server in Server.objects.all():
+                # This will be to populate Channels and Users
+                server_log = Log.objects.creaate(message="")
+                try:
+                    channels = Channel.objects.filter(server=server, deleted=False)
+                    server_log.message += "- Found channels:\n{}\n\n".format(logify_object(channels))
+                    for channel in channels:
+                        try:
+                            server_log.message += "Running for channel {}\n".format(channel)
+                            c = self.bot.get_channel(channel.channel_id)
+                            if c is None:
+                                server_log.message += "- Channel is not found, marking as deleted\n"
+                                c.deleted = True
+                                c.save()
+                                continue
+                            user_ids = [su.user.pk for su in ServerUser.objects.filter(server=server)]
+                            server_log.message += "  - Users found for this channel: {}\n".format(user_ids)
+                            for user in DiscordUser.objects.filter(pk__in=user_ids):
+                                try:
+                                    server_log.message += "    - Working on user {}\n".format(user)
+                                    perms = c.permissions_for(discord.User(id=user.user_id))
+                                    server_log.message += "      - Perms: {}\n".format(perms)
+                                    cu, cu_created = ChannelUser.objects.get_or_create(channel=channel, user=user)
+                                    server_log.message += "        - CU, Created: {},{}\n".format(cu, cu_created)
+                                    if not cu_created:
+                                        if not perms.read_messages and not perms.send_messages:
+                                            server_log.message += "      - Read Messages: {} - Send Messages: {}\n".format(perms.read_messages, perms.send_messages)
+                                            cu.delete()
+                                except Exception as e:
+                                    server_log.message += "- Failed: {}\n".format(logify_exception_info(e))
+                                server_log.message += "\n"
+                        except Exception as e:
+                            server_log.message += "- Failed: {}\n".format(logify_exception_info(e))
+                    server_log.message += "\n"
+                except Exception as e:
+                    server_log.message += "- Failed: {}\n".format(logify_exception_info(e))
+                server_log.save()
+
 
             tasks = Task.objects.filter(cancelled=False, completed=False, expire_date__lte=timezone.now())
             if tasks.count() >= 1:
