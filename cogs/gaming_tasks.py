@@ -25,7 +25,7 @@ class GamingTasks:
             try:
                 yield from asyncio.sleep(5)
 
-                log_item = Log(message="This should not be saved, ever unless something went wrong")
+                log_item = Log(message="This should not be saved, ever unless something went wrong", email=True)
 
                 channels = Channel.objects.filter(private=False, game_channel=True, expire_date__lte=timezone.now(), deleted=False)
                 if channels.count() >= 1:
@@ -53,7 +53,7 @@ class GamingTasks:
                     # No channels found to be deleted
                     pass
 
-                log_item = Log(message="This should not be saved, ever unless something went wrong")
+                log_item = Log(message="This should not be saved, ever unless something went wrong", email=True)
 
                 for server in Server.objects.all():
                     # This will be to populate Channels and Users
@@ -94,7 +94,7 @@ class GamingTasks:
                     finally:
                         log_item.save()
 
-                log_item = Log(message="This should not be saved, ever unless something went wrong")
+                log_item = Log(message="This should not be saved, ever unless something went wrong", email=True)
 
                 tasks = Task.objects.filter(cancelled=False, completed=False, expire_date__lte=timezone.now())
                 if tasks.count() >= 1:
