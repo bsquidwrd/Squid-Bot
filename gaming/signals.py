@@ -26,10 +26,13 @@ def email_log(sender, instance, *args, **kwargs):
             else:
                 body = instance.body
 
-            send_mail(
-                subject='{} {}'.format(settings.EMAIL_SUBJECT_PREFIX, subject),
-                message="Message Token: {}\n\n{}".format(instance.message_token, body),
-                from_email=settings.SERVER_EMAIL,
-                recipient_list=settings.ADMINS,
-                fail_silently=True
-            )
+            try:
+                divider = '-'*50
+                send_mail(
+                    subject='{} {}'.format(settings.EMAIL_SUBJECT_PREFIX, subject),
+                    message="Message Token: {0}\n\n{1}\n\n{2}\n\n{1}".format(instance.message_token, divider, body),
+                    from_email=settings.SERVER_EMAIL,
+                    recipient_list=settings.ADMINS
+                )
+            except Exception as e:
+                Log.objects.create(message="Error sending email about log {}\n\n{}".format(logify_exception_info(e)), message_token='ERROR_SENDING_EMAIL')
