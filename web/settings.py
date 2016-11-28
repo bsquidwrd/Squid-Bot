@@ -71,11 +71,13 @@ EMAIL_HOST_USER = 'smtp@bsquidwrd.com'
 EMAIL_HOST_PASSWORD = os.getenv('SQUID_BOT_EMAIL_PASSWORD', None)
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
-SERVER_EMAIL = 'bsquidwrd <noreply@bsquidwrd.com>'
+SERVER_EMAIL = 'Squid Bot <smtp@bsquidwrd.com>'
 DEFAULT_FROM_EMAIL = SERVER_EMAIL
 
 # Used for sending emails
 EMAIL_SUBJECT_PREFIX = '[Squid-Bot] '
+
+ADMINS = ('bsquidwrd <squidbot@bsquidwrd.com>',)
 
 APPEND_SLASH = True
 
