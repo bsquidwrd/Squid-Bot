@@ -18,7 +18,7 @@ def email_log(sender, instance, *args, **kwargs):
     if isinstance(instance, Log):
         if instance.email:
             if instance.subject is None or instance.subject == '':
-                subject = "Squid Bot Log"
+                subject = "Log item needs your attention"
             else:
                 subject = instance.subject
             if instance.body is None or instance.body == '':
