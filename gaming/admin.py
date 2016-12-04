@@ -55,12 +55,13 @@ class ServerAdmin(admin.ModelAdmin):
     get_display_name.short_description = 'Display Name'
 
     fieldsets = [
-        (None, {'fields': ['server_id', 'name',]}),
+        (None, {'fields': ['server_id', 'name', 'owner', 'icon',]}),
     ]
 
     list_display = ('get_display_name', 'server_id', 'name',)
     list_display_links = ('get_display_name',)
     search_fields = ('server_id', 'name',)
+    raw_id_fields = ('owner',)
 
 
 class RoleAdmin(admin.ModelAdmin):

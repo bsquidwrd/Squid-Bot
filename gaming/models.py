@@ -46,8 +46,10 @@ class GameUser(models.Model):
 
 
 class Server(models.Model):
+    owner = models.ForeignKey('DiscordUser', blank=True, null=True)
     server_id = models.CharField(max_length=4000, unique=True)
     name = models.CharField(max_length=4000, blank=True, null=True, default="")
+    icon = models.CharField(max_length=4000, blank=True, null=True)
 
     def __str__(self):
         display_name = '{}'.format(self.server_id)
