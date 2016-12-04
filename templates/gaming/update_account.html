@@ -1,0 +1,15 @@
+{% extends "socialaccount/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}Update Account Information{% endblock %}
+
+{% block content %}
+
+<form class="account_update" id="account_update_form" method="post" action="{% url 'account_update' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-primary" type="submit">Update <i class="fa fa-floppy-o"></i></button><br/>
+</form>
+
+{% endblock %}

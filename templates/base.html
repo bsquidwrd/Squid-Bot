@@ -1,0 +1,127 @@
+<!DOCTYPE html>{% load staticfiles %}
+<html>
+
+<head>
+    <title>{% block head_title %}Home{% endblock %} | Squid Bot</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link type="text/plain" rel="author" href="{% url 'humans' %}" />
+    <link rel="shortcut icon" href="{% static 'images\favicon.ico' %}" type="image/x-icon" />
+
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap\css\bootstrap.min.css' %}" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/css/mdb.min.css" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css\style.min.css' %}" />
+
+    <!-- extra_header -->
+    {% block extra_header %} {% endblock %}
+    <!-- /extra_header -->
+</head>
+
+<body role="document">
+    {% include 'menu.html' %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+
+                <div class="page-header my-header">
+                    <h2>{% block page_header %}{{ view_globals.page_name }}{% endblock %}</h2>
+                </div>
+
+                <div class="show_for_processing"><br /><br />
+                    <div class="processing_message_cell">
+                        <div class="processing_message_card">
+                            <span class="whirly-loader"></span>
+                            <br/><br/><br/>
+                            Processing, please wait...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hide_for_processing">
+                    <!-- body -->
+                    {% block body %} {% if messages %}
+                    <!-- messages -->
+                    {% for message in messages %}
+                    <div class="alert alert-dismissible{% if message.tags %} alert-{{ message.tags }}{% endif %}" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <strong>{{ message }}</strong>
+                    </div>
+                    {% endfor %}
+                    <!-- /messages -->
+                    {% endif %}
+
+                    <!-- content -->
+                    {% block content %} {% endblock %}
+                    <!-- /content -->
+
+                    {% endblock %}
+                    <!-- /body -->
+
+                    <!-- extra_body -->
+                    {% block extra_body %} {% endblock %}
+                    <!-- /extra_body -->
+                </div>
+                <!-- /hide_for_processing -->
+            </div>
+            <!-- /col-md-6 -->
+            <div class="col-md-2"></div>
+        </div>
+        <!-- /row -->
+    </div>
+    <!-- /container -->
+
+    <footer class="footer">
+        <div class="container text-center">
+            <h5><a href="{% url 'index' %}" class="btn btn-lg btn-link" role="button"><i class="fa fa-home"></i> Home</a></h5>
+        </div>
+    </footer>
+
+    <noscript id="deferred-styles">
+        <link rel="stylesheet" type="text/css" href="{% static 'css\spinner\whirly.css' %}"/>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css">
+    </noscript>
+
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <script src="{% static 'bootstrap\js\bootstrap.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/js/mdb.min.js"></script>
+    <script src="{% static 'js\konami.min.js' %}"></script>
+    <script src="https://use.fontawesome.com/51e479e4b0.js"></script>
+
+    <script>
+        var loadDeferredStyles = function() {
+            var addStylesNode = document.getElementById("deferred-styles");
+            var replacement = document.createElement("div");
+            replacement.innerHTML = addStylesNode.textContent;
+            document.body.appendChild(replacement)
+            addStylesNode.parentElement.removeChild(addStylesNode);
+        };
+        var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+            webkitRequestAnimationFrame || msRequestAnimationFrame;
+        if (raf) raf(function() {
+            window.setTimeout(loadDeferredStyles, 0);
+        });
+        else window.addEventListener('load', loadDeferredStyles);
+
+        $(window).bind('beforeunload', function() {
+            $(".show_for_processing").show();
+            $(".hide_for_processing").hide();
+        });
+
+        $(document).ready(function() {
+            $(".show_for_processing").hide();
+            $(".hide_for_processing").show();
+        });
+
+        var easter_egg = new Konami("{% url 'humans' %}");
+    </script>
+
+    <!-- extra_footer -->
+    {% block extra_footer %} {% endblock %}
+    <!-- /extra_footer -->
+</body>
+
+</html>

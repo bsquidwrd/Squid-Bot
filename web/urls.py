@@ -14,18 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
-from django.conf.urls.static import static
-from django.views import static
+from django.views.generic.base import TemplateView
 
-def get_patterns():
-    patterns = [
-        url(r'^admin/', admin.site.urls)
-    ]
-    if not settings.DEBUG:
-        patterns.append(url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}))
-    return patterns
+from gaming import views
 
 
-urlpatterns = get_patterns()
+urlpatterns = [
+    url(r'^humans.txt$', TemplateView.as_view(template_name='humans.txt', content_type='text/plain'), name='humans'),
+    url(r'^$', views.index_view, name='index'),
+    url(r'^server/(?P<server_id>\w+)/$', views.server_view, name='server'),
+    url(r'^accounts/update/', views.update_account_view, name='account_update'),
+    url(r'^accounts/', include('allauth.urls')),
+    url(r'^admin/', admin.site.urls),
+]

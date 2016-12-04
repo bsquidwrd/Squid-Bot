@@ -3,6 +3,7 @@ import string
 
 from django.db import models
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 
 
 class DiscordUser(models.Model):
@@ -56,6 +57,12 @@ class Server(models.Model):
         if self.name:
             display_name = '{} ({})'.format(self.name, self.server_id)
         return display_name
+
+    def get_url(self):
+        return reverse('server', args=[self.server_id])
+
+    def get_icon(self):
+        return "https://cdn.discordapp.com/icons/{}/{}.jpg".format(self.server_id, self.icon)
 
     class Meta:
         verbose_name = "Server"

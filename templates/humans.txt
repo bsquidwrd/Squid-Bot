@@ -1,0 +1,15 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# DESIGNER/IMPLEMENTER/MAGIC MAN
+
+    bsquidwrd
+
+# THANKS
+
+    Isk, my unwitting and unknown guinea pig
+
+# TECHNOLOGY COLOPHON
+
+    CSS, HTML, Python, Django, PostgreSQL,
+    nginx, BitBucket and git

@@ -1,0 +1,8 @@
+{% extends 'gaming/base.html' %}
+{% block head_title %}{{ server.name }}{% endblock %}
+
+{% block content %}
+<ul>
+    <li>Icon:<br /><a href="{{ server.get_icon }}" target="_blank"><img class="icon img-circle" src="{{ server.get_icon }}" /></a></li>
+</ul>
+{% endblock %}
