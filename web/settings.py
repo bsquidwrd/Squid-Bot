@@ -66,16 +66,16 @@ else:
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'smtp@bsquidwrd.com'
+EMAIL_HOST = 'smtp-relay.gmail.com'
+EMAIL_HOST_USER = 'noreply@bsquidwrd.com'
 EMAIL_HOST_PASSWORD = os.getenv('SQUID_BOT_EMAIL_PASSWORD', None)
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
-SERVER_EMAIL = 'Squid Bot <smtp@bsquidwrd.com>'
+SERVER_EMAIL = 'Squid Bot <noreply@bsquidwrd.com>'
 DEFAULT_FROM_EMAIL = SERVER_EMAIL
 
 # Used for sending emails
-EMAIL_SUBJECT_PREFIX = '[Squid-Bot] '
+EMAIL_SUBJECT_PREFIX = '[Squid Bot] '
 
 ADMINS = ('bsquidwrd <squidbot@bsquidwrd.com>',)
 
