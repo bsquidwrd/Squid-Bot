@@ -180,6 +180,7 @@ STATIC_URL = '/static/'
 # Begin my custom settings #
 ############################
 
+LOGIN_REDIRECT_URL = '/'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
