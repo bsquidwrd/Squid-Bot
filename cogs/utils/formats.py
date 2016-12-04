@@ -1,6 +1,7 @@
 import json
 import sys
 from django.core import serializers
+from inspect import getframeinfo, getouterframes
 
 
 def logify_object(obj):
@@ -13,6 +14,10 @@ def logify_dict(d):
 
 def logify_exception_info():
     return "Filename: {0.tb_frame.f_code.co_filename}\nLine: {0.tb_lineno}\n".format(sys.exc_info()[2])
+
+
+def current_line():
+    return getouterframes(currentframe())[1].lineno
 
 
 async def entry_to_code(bot, entries):

@@ -1,6 +1,6 @@
 from discord.ext import commands
 from .utils import checks
-from .utils.formats import logify_exception_info, logify_object
+from .utils.formats import logify_exception_info, logify_object, current_line
 import asyncio
 import discord
 
@@ -8,7 +8,7 @@ import web.wsgi
 from django.utils import timezone
 from django.db import models
 from django.utils import timezone
-from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log, ChannelUser
+from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log, ChannelUser, ServerUser
 
 
 class GamingTasks:
@@ -24,8 +24,6 @@ class GamingTasks:
         while True:
             try:
                 yield from asyncio.sleep(5)
-
-                log_item = Log(message="This should not be saved, ever, unless something went wrong")
 
                 channels = Channel.objects.filter(private=False, game_channel=True, expire_date__lte=timezone.now(), deleted=False)
                 if channels.count() >= 1:
@@ -55,8 +53,6 @@ class GamingTasks:
                     # No channels found to be deleted
                     pass
 
-                log_item = Log(message="This should not be saved, ever, unless something went wrong")
-
                 for server in Server.objects.all():
                     # This will be to populate Channels and Users
                     s = bot.get_server(server.server_id)
@@ -68,6 +64,9 @@ class GamingTasks:
                             try:
                                 log_item.message += "Running for channel {}\n".format(channel)
                                 c = bot.get_channel(channel.channel_id)
+                                if c.is_default:
+                                    log_item.message += "- Channel is default channel, skipping...\n"
+                                    continue
                                 if c is None:
                                     log_item.message += "- Channel is not found, marking as deleted\n"
                                     c.deleted = True
@@ -92,37 +91,33 @@ class GamingTasks:
                             except Exception as e:
                                 log_item.message += "- Failed:\n{}\n{}\n".format(logify_exception_info(), e)
                             finally:
-                                log_item.message += "- Finished channel processing\n{}{}\n".format(logify_exception_info(), e)
+                                log_item.message += "- Finished channel processing\n"
                         log_item.message += "\n"
                     except Exception as e:
                         log_item.message += "- Failed: {}\n{}\n".format(logify_exception_info(), e)
                     finally:
                         log_item.save()
 
-                log_item = Log(message="This should not be saved, ever, unless something went wrong")
-
                 tasks = Task.objects.filter(cancelled=False, completed=False, expire_date__lte=timezone.now())
-                if tasks.count() >= 1:
-                    log_item = Log.objects.create(message = "Starting to process tasks\n{}\n\n".format(logify_object(tasks)))
-                    for task in tasks:
-                        log_item.message += 'Running task for {} at {}\n'.format(task.user, timezone.now())
-                        if task.task == Task.ADD_TO_GAME_CHAT:
-                            try:
-                                user = DiscordUser.objects.get(pk=task.user.pk)
-                                game = Game.objects.get(pk=task.game.pk)
-                                channel = Channel.objects.get(pk=task.channel.pk)
-                                log_item.message += 'Game: {}\nChannel: {}\nUser: {}\nTask PK: {}\n\n'.format(user, game, channel, task.pk)
-                            except Game.DoesNotExist as e:
-                                log_item.message += '- Error finding game for task.\n{}{}\n'.format(logify_exception_info(), e)
-                            except Channel.DoesNotExist as e:
-                                log_item.message += '- Error finding channel for game {}\n{}{}\n'.format(game, logify_exception_info(), e)
-                            except Exception as e:
-                                log_item.message += '- Unknown error happened\n{}{}\n'.format(logify_exception_info(), e)
-                        else:
-                            # Not really a task for some reason
-                            log_item.message += '- I don\'t recognize the task type \'{}\'...'.format()
-                        log_item.message += '- Finished processing task\n'
-                        log_item.save()
+                for task in tasks:
+                    log_item.message += 'Running task for {} at {}\n'.format(task.user, timezone.now())
+                    if task.task == Task.ADD_TO_GAME_CHAT:
+                        try:
+                            user = DiscordUser.objects.get(pk=task.user.pk)
+                            game = Game.objects.get(pk=task.game.pk)
+                            channel = Channel.objects.get(pk=task.channel.pk)
+                            log_item.message += 'Game: {}\nChannel: {}\nUser: {}\nTask PK: {}\n\n'.format(user, game, channel, task.pk)
+                        except Game.DoesNotExist as e:
+                            log_item.message += '- Error finding game for task.\n{}{}\n'.format(logify_exception_info(), e)
+                        except Channel.DoesNotExist as e:
+                            log_item.message += '- Error finding channel for game {}\n{}{}\n'.format(game, logify_exception_info(), e)
+                        except Exception as e:
+                            log_item.message += '- Unknown error happened\n{}{}\n'.format(logify_exception_info(), e)
+                    else:
+                        # Not really a task for some reason
+                        log_item.message += '- I don\'t recognize the task type \'{}\'...'.format()
+                    log_item.message += '- Finished processing task\n'
+                    log_item.save()
             except Exception as e:
                 log_item = Log.objects.create(message="- Error running task:\n{}{}\n".format(logify_exception_info(), e))
             finally:
