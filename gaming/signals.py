@@ -36,4 +36,4 @@ def email_log(sender, instance, *args, **kwargs):
                     recipient_list=settings.ADMINS
                 )
             except Exception as e:
-                Log.objects.create(message="Error sending email about log {}\n\n{}".format(logify_exception_info(e)), message_token='ERROR_SENDING_EMAIL')
+                Log.objects.create(message="Error sending email about log {}\n\n{}".format(logify_exception_info()), message_token='ERROR_SENDING_EMAIL')

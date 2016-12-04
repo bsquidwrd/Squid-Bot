@@ -329,7 +329,7 @@ class Gaming:
                     if possible_game.count() == 1:
                         game = possible_game[0]
                 except Exception as e:
-                    log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
+                    log_item.message += '- Failed\n\n{}'.format(logify_exception_info())
                 await self.bot.delete_message(msg)
             else:
                 time_ran_out = True
@@ -382,7 +382,7 @@ class Gaming:
                         else:
                             raise Exception("Content is not equal to yes/no")
                     except Exception as e:
-                        log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
+                        log_item.message += '- Failed\n\n{}'.format(logify_exception_info())
                     await self.bot.delete_message(msg)
                 else:
                     time_ran_out = True
@@ -476,7 +476,7 @@ class Gaming:
                             games_removed = [game]
                             game_search_cancelled = True
                     except Exception as e:
-                        log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
+                        log_item.message += '- Failed\n\n{}'.format(logify_exception_info())
                     await self.bot.delete_message(msg)
                 await self.bot.delete_message(question_message)
             else:
@@ -548,7 +548,7 @@ class Gaming:
                     if possible_game.count() == 1:
                         game = possible_game[0]
                 except Exception as e:
-                    log_item.message += '- Failed\n\n{}'.format(logify_exception_info(e))
+                    log_item.message += '- Failed\n\n{}'.format(logify_exception_info())
                 await self.bot.delete_message(msg)
             else:
                 time_ran_out = True
