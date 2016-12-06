@@ -170,7 +170,14 @@ class Gaming:
     def get_game_channels(game):
         if not isinstance(game, Game):
             return False
-        return Channel.objects.filter(game=game, private=False, game_channel=True, deleted=False, expire_date__gte=timezone.now()).order_by('-expire_date')
+        return Channel.objects.annotate(num_users=Count('channeluser')).filter(
+            game=game,
+            private=False,
+            game_channel=True,
+            deleted=False,
+            expire_date__gte=timezone.now(),
+            num_users__lte=4
+        ).order_by('-expire_date', '-num_users')
 
     async def create_game_channel(self, ctx, game, searches=None):
         """ Gets/Creates a channel for the game selected """
@@ -354,8 +361,7 @@ class Gaming:
                     channel.deleted = True
                     channel.save()
                     continue
-                users = ChannelUsers.objects.filter(channel=channel)
-                if users.count() > 5:
+                if channel.num_users > 5:
                     continue
                 else:
                     game_channel = channel
