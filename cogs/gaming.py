@@ -273,7 +273,7 @@ class Gaming:
         else:
             games = Game.objects.all()
         games = self.map_games(games)
-        message_to_send = '{}\n{}'.format(await self.game_beautify(games, page=page))
+        message_to_send = '{}\n'.format(await self.game_beautify(games, page=page))
         await self.bot.say(message_to_send, delete_after=30)
         await self.bot.delete_message(ctx.message)
 
