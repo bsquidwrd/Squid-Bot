@@ -273,10 +273,7 @@ class Gaming:
         else:
             games = Game.objects.all()
         games = self.map_games(games)
-        want_to_play_message = 'Want to play a game with people? Type `{}help lfg` to learn how to start searching.'.format(ctx.prefix)
-        message_to_send = '{}'.format(await self.game_beautify(games, page=page))
-        if len(games) >= 1:
-            message_to_send += '{}'.format(want_to_play_message)
+        message_to_send = '{}\n{}'.format(await self.game_beautify(games, page=page))
         await self.bot.say(message_to_send, delete_after=30)
         await self.bot.delete_message(ctx.message)
 
