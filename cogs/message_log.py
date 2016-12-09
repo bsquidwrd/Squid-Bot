@@ -5,7 +5,7 @@ from discord.ext import commands
 import pytz
 
 from .utils import checks
-from .utils.formats import logify_exception_info, logify_object
+from .utils import logify_exception_info, logify_object
 
 import web.wsgi
 from django.utils import timezone

@@ -5,6 +5,8 @@ from django.db import models
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
+from cogs.utils import logify_exception_info
+
 
 class DiscordUser(models.Model):
     user_id = models.CharField(max_length=4000, unique=True)
