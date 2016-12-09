@@ -280,6 +280,7 @@ class Gaming:
         await self.bot.say(message_to_send, delete_after=30)
         await self.bot.delete_message(ctx.message)
 
+    @checks.is_owner()
     @commands.command(name='lfg', pass_context=True)
     async def looking_for_game(self, ctx, game_search_key: str = None, page_number: str = None):
         """Used when users want to play a game with others
