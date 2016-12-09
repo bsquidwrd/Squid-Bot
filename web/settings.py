@@ -37,9 +37,6 @@ else:
         '127.0.0.1',
         'localhost',
         'bsquid.io',
-        '*.bsquid.io',
-        'bsquidwrd.com',
-        '*.bsquidwrd.com',
         '52.91.15.56',
     ]
 
