@@ -157,7 +157,7 @@ class Gaming:
         if isinstance(games, list):
             games = Game.objects.filter(pk__in=[g.pk for g in games])
         # Order the games by the number of players who play it
-        return games.annotate(user_count=Count('gameuser')).filter(user_count__gte=2).order_by('-user_count')
+        return games.annotate(user_count=Count('gameuser')).filter(user_count__gte=3).order_by('-user_count')
 
     def map_games(self, games):
         """ Maps games to a number from highest played to lowest played """
