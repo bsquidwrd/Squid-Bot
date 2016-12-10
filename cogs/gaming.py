@@ -111,11 +111,12 @@ class Gaming:
         """
         Returns a Server object after getting or creating the server
         """
-        s = Server.objects.get_or_create(server_id=server.id)[0]
+        s, created = Server.objects.get_or_create(server_id=server.id)
         s.name = server.name
         s.icon = server.icon
         s.owner = self.get_user(server.owner)
         s.save()
+        Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
         return s
 
     def get_user(self, member):
