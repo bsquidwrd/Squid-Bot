@@ -37,7 +37,6 @@ else:
         '127.0.0.1',
         'localhost',
         'bsquid.io',
-        '52.91.15.56',
     ]
 
 if 'TRAVIS' in os.environ:
