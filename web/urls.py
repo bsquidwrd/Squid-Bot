@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^humans.txt$', TemplateView.as_view(template_name='humans.txt', content_type='text/plain'), name='humans'),
     url(r'^$', views.index_view, name='index'),
     url(r'^server/(?P<server_id>\w+)/$', views.server_view, name='server'),
+    url(r'^user/(?P<user_id>\w+)/$', views.user_view, name='user'),
     url(r'^accounts/update/', views.update_account_view, name='account_update'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^admin/', admin.site.urls),

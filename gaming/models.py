@@ -12,12 +12,19 @@ class DiscordUser(models.Model):
     user_id = models.CharField(max_length=4000, unique=True)
     name = models.CharField(max_length=4000)
     bot = models.BooleanField(default=False)
+    avatar_url = models.CharField(max_length=4000, blank=True, null=True)
 
     def __str__(self):
         display_name = self.user_id
         if self.name:
             display_name = '{} ({})'.format(self.name, 'Bot' if self.bot else 'User')
         return display_name
+
+    def get_icon(self):
+        return self.avatar_url
+
+    def get_url(self):
+        return reverse('user', args=[self.user_id])
 
     class Meta:
         verbose_name = "Discord User"

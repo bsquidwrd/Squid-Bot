@@ -1,0 +1,15 @@
+{% extends 'gaming/base.html' %}
+{% block head_title %}{{ discorduser.name }}{% endblock %}
+
+{% block page_header %}{% if discorduser.get_icon %}<img class="icon img-circle header-icon" src="{{ discorduser.get_icon }}" /> {% endif %}{{ discorduser.name }}{% endblock %}
+
+{% block content %}
+<div class="server-list">
+    <h3>Servers:</h3>
+    <ul>
+    {% for server in discorduser.server_set.all %}
+        <li><a href="{{ server.get_url }}" class="btn btn-lg btn-link"><img src="{{ server.get_icon }}" class="icon img-circle body-icon" /> {{ server.name }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}

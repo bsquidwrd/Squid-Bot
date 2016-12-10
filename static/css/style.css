@@ -8,9 +8,14 @@ body {
     padding-bottom: 30px;
 }
 
-.icon {
+.header-icon {
     height: auto;
     width: 50px;
+}
+
+.body-icon {
+    height: auto;
+    width: 25px;
 }
 
 .processing_message_cell {

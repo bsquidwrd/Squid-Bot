@@ -3,7 +3,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
 
 from gaming.forms import UpdateAccountForm
-from gaming.models import Server
+from gaming.models import Server, DiscordUser, ServerUser
 from gaming.utils import logify_exception_info
 
 
@@ -25,8 +25,11 @@ def server_view(request, server_id):
         messages.add_message(request, messages.ERROR, "Requested server does not exist!")
         return redirect('index')
 
+    serverusers = ServerUser.objects.filter(server=server, user__bot=False).exclude(user=server.owner)
+
     context = {
         'server': server,
+        'serverusers': serverusers,
     }
     return render(request, template, context)
 
@@ -60,5 +63,19 @@ def update_account_view(request):
 
     context = {
         'form': form,
+    }
+    return render(request, template, context)
+
+
+def user_view(request, user_id):
+    template = 'gaming/user.html'
+    try:
+        discorduser = DiscordUser.objects.get(user_id=user_id)
+    except:
+        messages.add_message(request, messages.ERROR, "Requested user does not exist!")
+        return redirect('index')
+
+    context = {
+        'discorduser': discorduser,
     }
     return render(request, template, context)

@@ -23,11 +23,13 @@
     {% include 'menu.html' %}
     <div class="container">
         <div class="row">
-            <div class="col-md-2"></div>
+            <div class="col-md-2">
+                <a href="javascript:window.history.go(-1)" class="btn btn-lg btn-link" role="button"><i class="fa fa-chevron-left"></i> Back</a>
+            </div>
             <div class="col-md-8">
 
                 <div class="page-header my-header">
-                    <h2>{% block page_header %}{{ view_globals.page_name }}{% endblock %}</h2>
+                    <h2>{% block page_header %}{% endblock %}</h2>
                 </div>
 
                 <div class="show_for_processing"><br /><br />

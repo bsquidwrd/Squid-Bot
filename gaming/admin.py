@@ -9,7 +9,7 @@ class DiscordUserAdmin(admin.ModelAdmin):
     get_display_name.short_description = 'Display Name'
 
     fieldsets = [
-        (None, {'fields': ['user_id', 'name',]}),
+        (None, {'fields': ['user_id', 'name', 'bot', 'avatar_url',]}),
     ]
 
     list_display = ('get_display_name', 'user_id', 'name',)

@@ -1,8 +1,17 @@
 {% extends 'gaming/base.html' %}
 {% block head_title %}{{ server.name }}{% endblock %}
 
+{% block page_header %}<img class="icon img-circle header-icon" src="{{ server.get_icon }}" /> {{ server.name }}{% endblock %}
+
 {% block content %}
 <ul>
-    <li>Icon:<br /><a href="{{ server.get_icon }}" target="_blank"><img class="icon img-circle" src="{{ server.get_icon }}" /></a></li>
+    <li>Owner: <a href="{{ server.owner.get_url }}" class="btn btn-lg btn-link"><img src="{{ server.owner.get_icon }}" class="icon img-circle body-icon" /> {{ server.owner.name }}</a></li>
+    <li>Members:<br />
+        <ul>
+        {% for su in serverusers %}
+            <li><a href="{{ su.user.get_url }}" class="btn btn-lg btn-link">{% if su.user.get_icon %}<img src="{{ su.user.get_icon }}" class="icon img-circle body-icon" /> {% endif %}{{ su.user.name }}</a></li>
+        {% endfor %}
+        </ul>
+    </li>
 </ul>
 {% endblock %}
