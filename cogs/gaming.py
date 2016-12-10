@@ -124,7 +124,19 @@ class Gaming:
         Returns a DiscordUser object after getting or creating the user
         Does not create users for Bots
         """
-        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name, 'bot': member.bot})[0]
+        try:
+            u, created = DiscordUser.objects.get_or_create(user_id=member.id)
+            u.name = member.name
+            u.bot = member.bot
+            avatar_url = member.avatar_url
+            if avatar_url is None:
+                avatar_url = member.default_avatar_url
+            u.avatar_url = avatar_url
+            u.save()
+            Log.objects.create(message="u: {0}\ncreated: {1}\nname: {0.name}\navatar_url: {0.avatar_url}\nbot: {0.bot}".format(u, created))
+            return u
+        except Exception as e:
+            Log.objects.create(message="Error trying to get DiscordUser object for member.\n{}".format(logify_exception_info()))
 
     def get_server_user(self, user, server):
         return ServerUser.objects.get_or_create(user=user, server=server)[0]
