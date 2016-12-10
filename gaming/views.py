@@ -2,10 +2,9 @@ from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
 
-from cogs.utils import logify_exception_info
-
 from gaming.forms import UpdateAccountForm
 from gaming.models import Server
+from gaming.utils import logify_exception_info
 
 
 def index_view(request):

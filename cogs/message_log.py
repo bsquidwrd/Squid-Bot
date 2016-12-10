@@ -5,13 +5,13 @@ from discord.ext import commands
 import pytz
 
 from .utils import checks
-from .utils import logify_exception_info, logify_object
 
 import web.wsgi
 from django.utils import timezone
 from django.db import models
 from django.utils import timezone
 from gaming.models import DiscordUser, Server, Channel, Log, Message
+from gaming.utils import logify_exception_info, logify_object
 
 
 class MessageLog:

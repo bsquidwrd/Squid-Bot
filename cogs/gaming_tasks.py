@@ -1,6 +1,5 @@
 from discord.ext import commands
 from .utils import checks
-from .utils import logify_exception_info, logify_object, current_line
 import asyncio
 import discord
 
@@ -9,6 +8,7 @@ from django.utils import timezone
 from django.db import models
 from django.utils import timezone
 from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log, ChannelUser, ServerUser
+from gaming.utils import logify_exception_info, logify_object, current_line
 
 
 class GamingTasks:

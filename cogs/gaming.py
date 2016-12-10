@@ -6,7 +6,6 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from .utils import checks
 from .utils.data import Data
-from .utils import logify_exception_info, logify_object
 
 import web.wsgi
 from django.db import models
@@ -14,6 +13,7 @@ from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel, Task, Log, ChannelUser
+from gaming.utils import logify_exception_info, logify_object
 
 DISCORD_MSG_CHAR_LIMIT = 2000
 

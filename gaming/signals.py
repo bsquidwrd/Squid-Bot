@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from cogs.utils import logify_exception_info
+from gaming.utils import logify_exception_info
 from gaming.models import Log
 
 

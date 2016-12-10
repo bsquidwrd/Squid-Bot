@@ -5,7 +5,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
-from cogs.utils import logify_exception_info
+from gaming.utils import logify_exception_info
 
 
 class DiscordUser(models.Model):
