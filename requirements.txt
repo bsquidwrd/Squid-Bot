@@ -15,4 +15,5 @@ pytz==2016.6.1
 requests==2.11.1
 requests-oauthlib==0.7.0
 six==1.10.0
+uWSGI==2.0.14
 websockets==3.1
