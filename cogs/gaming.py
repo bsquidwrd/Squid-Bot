@@ -129,7 +129,7 @@ class Gaming:
             u.name = member.name
             u.bot = member.bot
             avatar_url = member.avatar_url
-            if avatar_url is None:
+            if avatar_url is None or avatar_url == "":
                 avatar_url = member.default_avatar_url
             u.avatar_url = avatar_url
             u.save()
