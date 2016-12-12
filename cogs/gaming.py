@@ -112,31 +112,37 @@ class Gaming:
         Returns a Server object after getting or creating the server
         """
         s, created = Server.objects.get_or_create(server_id=server.id)
-        s.name = server.name
-        s.icon = server.icon
-        s.owner = self.get_user(server.owner)
-        s.save()
-        Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
-        return s
+        try:
+            s.name = server.name
+            s.icon = server.icon
+            s.owner = self.get_user(server.owner)
+            s.save()
+            Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
+        except Exception as e:
+            Log.objects.create(message="Error trying to get Server object for server {}.\n{}".format(s, logify_exception_info()))
+        finally:
+            s.save()
+            return s
 
     def get_user(self, member):
         """
         Returns a DiscordUser object after getting or creating the user
         Does not create users for Bots
         """
+        u, created = DiscordUser.objects.get_or_create(user_id=member.id)
         try:
-            u, created = DiscordUser.objects.get_or_create(user_id=member.id)
             u.name = member.name
             u.bot = member.bot
             avatar_url = member.avatar_url
             if avatar_url is None or avatar_url == "":
                 avatar_url = member.default_avatar_url
             u.avatar_url = avatar_url
-            u.save()
             Log.objects.create(message="u: {0}\ncreated: {1}\nname: {0.name}\navatar_url: {0.avatar_url}\nbot: {0.bot}".format(u, created))
-            return u
         except Exception as e:
-            Log.objects.create(message="Error trying to get DiscordUser object for member.\n{}".format(logify_exception_info()))
+            Log.objects.create(message="Error trying to get DiscordUser object for member: {}.\n{}".format(u, logify_exception_info()))
+        finally:
+            u.save()
+            return u
 
     def get_server_user(self, user, server):
         return ServerUser.objects.get_or_create(user=user, server=server)[0]
