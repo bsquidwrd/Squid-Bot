@@ -25,7 +25,7 @@ def server_view(request, server_id):
         messages.add_message(request, messages.ERROR, "Requested server does not exist!")
         return redirect('index')
 
-    serverusers = ServerUser.objects.filter(server=server, user__bot=False).exclude(user=server.owner)
+    serverusers = ServerUser.objects.filter(server=server, user__bot=False)
 
     context = {
         'server': server,
