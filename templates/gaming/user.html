@@ -6,9 +6,9 @@
 {% block content %}
 <div class="server-list">
     <h3>Servers:</h3>
-    {% for server in discorduser.server_set.all %}
-        <a href="{{ server.get_url }}" class="btn btn-lg btn-link"  data-toggle="tooltip" title="{{ server.name }}{% if discorduser == server.owner %} (Owner){% endif %}">
-            <img src="{{ server.get_icon }}" class="icon img-circle body-icon" />
+    {% for su in discorduser.serveruser_set.all %}
+        <a href="{{ su.server.get_url }}" class="btn btn-lg btn-link"  data-toggle="tooltip" title="{{ su.server.name }}{% if discorduser == su.server.owner %} (Owner){% endif %}">
+            <img src="{{ su.server.get_icon }}" class="icon img-circle body-icon" />
         </a>
     {% endfor %}
 </div>
