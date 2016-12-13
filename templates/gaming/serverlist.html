@@ -6,7 +6,7 @@
 {% block content %}
 <ul>
     {% for server in servers %}
-    <li><a href="{{ server.get_url }}" class="btn btn-lg btn-link"><img src="{{ server.get_icon }}" class="icon img-circle body-icon" /> {{ server.name }}</a></li>
+    <li><a href="{{ server.get_url }}" class="btn btn-lg btn-link" data-toggle="tooltip" title="{{ server.name }}"><img src="{{ server.get_icon }}" class="icon img-circle body-icon" /></a></li>
     {% endfor %}
 </ul>
 {% endblock %}
