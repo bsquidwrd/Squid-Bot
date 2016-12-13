@@ -24,5 +24,6 @@ requests-oauthlib==0.7.0
 six==1.10.0
 snowballstemmer==1.2.1
 Sphinx==1.5.1
+sphinx-rtd-theme==0.1.9
 uWSGI==2.0.14
 websockets==3.1
