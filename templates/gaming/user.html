@@ -8,7 +8,7 @@
     <h3>Servers:</h3>
     {% for su in discorduser.serveruser_set.all %}
         <a href="{{ su.server.get_url }}" class="btn btn-lg btn-link"  data-toggle="tooltip" title="{{ su.server.name }}{% if discorduser == su.server.owner %} (Owner){% endif %}">
-            <img src="{{ su.server.get_icon }}" class="icon img-circle body-icon" />
+            <img src="{{ su.server.get_icon }}" class="icon img-circle body-icon" /> {{ su.server.name }}
         </a>
     {% endfor %}
 </div>
