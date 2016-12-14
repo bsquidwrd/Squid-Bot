@@ -4,9 +4,11 @@
 {% block page_header %}{{ title }}{% endblock %}
 
 {% block content %}
-<ul>
+<div class="server-list">
     {% for server in servers %}
-    <li><a href="{{ server.get_url }}" class="btn btn-lg btn-link" data-toggle="tooltip" title="{{ server.name }}"><img src="{{ server.get_icon }}" class="icon img-circle body-icon" /></a></li>
+    <a href="{{ server.get_url }}" class="btn btn-lg btn-link" data-toggle="tooltip" title="{{ server.name }}">
+        <img src="{{ server.get_icon }}" class="icon img-circle body-icon" /> {{ server.name }}
+    </a>
     {% endfor %}
-</ul>
+</div>
 {% endblock %}
