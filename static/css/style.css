@@ -26,8 +26,13 @@ body {
 .my-header {
     text-align: center;
 }
+
 .form-control {
     font-size: .75em;
+}
+
+.search-field {
+    width: 100%;
 }
 
 .errorlist li, .required-field {
