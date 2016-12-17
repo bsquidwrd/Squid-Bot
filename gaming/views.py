@@ -1,8 +1,10 @@
 import re
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from gaming.forms import UpdateAccountForm
 from gaming.models import Server, DiscordUser, ServerUser
@@ -87,7 +89,7 @@ def update_account_view(request):
     user = request.user
     if not user.is_authenticated():
         messages.add_message(request, messages.WARNING, 'Please login before accessing that page')
-        return redirect('account_login')
+        return redirect('{}?next={}'.format(reverse('account_login'), reverse('account_update')))
 
     if request.method == 'POST':
         form = UpdateAccountForm(request.POST, instance=user)
