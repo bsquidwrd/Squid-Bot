@@ -1,4 +1,4 @@
-## Squid Bot [![Build Status](https://travis-ci.org/bsquidwrd/Squid-Bot.svg?branch=master)](https://travis-ci.org/bsquidwrd/Squid-Bot) [![Documentation Status](https://readthedocs.org/projects/squid-bot/badge/?version=latest)](http://squid-bot.readthedocs.io/en/latest/?badge=latest)
+## Squid Bot [![Build Status](https://travis-ci.org/bsquidwrd/Squid-Bot.svg?branch=master)](https://travis-ci.org/bsquidwrd/Squid-Bot) [![Documentation Status](https://readthedocs.org/projects/squid-bot/badge/?version=latest)](http://squid-bot.readthedocs.io/en/latest/?badge=latest) [![Coverage Status](https://coveralls.io/repos/github/bsquidwrd/Squid-Bot/badge.svg?branch=master)](https://coveralls.io/github/bsquidwrd/Squid-Bot?branch=master)
 A bot of many talents
 
 ## Running
