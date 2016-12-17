@@ -25,7 +25,7 @@ before_script:
 
 script:
   - python manage.py migrate --noinput
-  - coverage run manage.py test
+  - coverage run --source=gaming,web manage.py test
 
 notifications:
   email:
