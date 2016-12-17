@@ -1,7 +1,7 @@
 import json
 import sys
 from django.core import serializers
-from inspect import getframeinfo, getouterframes
+from inspect import getframeinfo, getouterframes, currentframe
 
 
 def logify_object(obj):
