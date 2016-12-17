@@ -138,6 +138,10 @@ class GamingTasks:
                     channel.name = c.name
                     channel.created_date = c.created_at
                     channel.save()
+            except Exception as e:
+                log_item.message += "Error working on channels.\n{}\n{}\n".format(logify_exception_info(), e)
+            finally:
+                log_item.save()
 
 
 def setup(bot):
