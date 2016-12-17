@@ -55,12 +55,8 @@
                     <!-- /messages -->
                     {% endif %}
 
-                    <div class="search-field">
-                        <form class="form-inline pull-xs-right">
-                            <input class="form-control" type="text" placeholder="Search" name="search" value="{% if search %}{{ search }}{% endif %}">
-                            <button class="btn btn-link" type="submit">Search <i class="fa fa-search"></i></button>
-                        </form>
-                    </div>
+                    {% block search_field %}{% endblock %}
+
                     <!-- content -->
                     {% block content %} {% endblock %}
                     <!-- /content -->
