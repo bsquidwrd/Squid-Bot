@@ -210,7 +210,7 @@ class MessageAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['timestamp', 'message_id', 'server', 'channel', 'user', 'parent', 'deleted', 'content']}),
     ]
-    raw_id_fields = ('server', 'channel', 'user',)
+    raw_id_fields = ('server', 'channel', 'user', 'parent',)
 
 
 admin.site.register(DiscordUser, DiscordUserAdmin)
