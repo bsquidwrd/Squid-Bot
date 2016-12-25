@@ -55,6 +55,7 @@ class MessageLog:
 
     async def on_message_edit(self, before, after):
         """ Update the message that's been edited """
+        message = after
         user = self.get_user(message.author)
         server = self.get_server(message.server)
         channel = self.get_channel(message.channel)
@@ -72,7 +73,7 @@ class MessageLog:
 
         if user and server and channel:
             m = Message.objects.filter(message_id=message.id)
-            m.update(delted=True)
+            m.update(deleted=True)
 
 
 def setup(bot):
