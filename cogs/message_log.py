@@ -62,7 +62,7 @@ class MessageLog:
 
         if user and server and channel:
             timestamp = pytz.utc.localize(message.timestamp)
-            parent = Message.objects.get(message_id=before.id)
+            parent = Message.objects.get_or_create(message_id=before.id, content=before.content, server=server, user=user, channel=channel, timestamp=timestamp)[0]
             Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp, parent=parent)
 
     async def on_message_delete(self, message):
