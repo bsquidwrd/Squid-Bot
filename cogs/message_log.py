@@ -53,6 +53,27 @@ class MessageLog:
             timestamp = pytz.utc.localize(message.timestamp)
             Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)
 
+    async def on_message_edit(self, before, after):
+        """ Update the message that's been edited """
+        user = self.get_user(message.author)
+        server = self.get_server(message.server)
+        channel = self.get_channel(message.channel)
+
+        if user and server and channel:
+            timestamp = pytz.utc.localize(message.timestamp)
+            parent = Message.objects.get(message_id=before.id)
+            Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp, parent=parent)
+
+    async def on_message_delete(self, message):
+        """ Mark a message as deleted """
+        user = self.get_user(message.author)
+        server = self.get_server(message.server)
+        channel = self.get_channel(message.channel)
+
+        if user and server and channel:
+            m = Message.objects.filter(message_id=message.id)
+            m.update(delted=True)
+
 
 def setup(bot):
     bot.add_cog(MessageLog(bot))

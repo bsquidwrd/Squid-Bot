@@ -134,9 +134,11 @@ class Message(models.Model):
     server = models.ForeignKey('Server')
     channel = models.ForeignKey('Channel')
     user = models.ForeignKey('DiscordUser')
+    parent = models.ForeignKey('Message', blank=True, null=True)
     timestamp = models.DateTimeField()
     content = models.TextField()
     message_id = models.CharField(max_length=4000)
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return '{} - {} - {} - {}'.format(self.timestamp, self.user, self.channel, self.server)
