@@ -208,7 +208,7 @@ class MessageAdmin(admin.ModelAdmin):
     search_fields = ['server__server_id', 'server__name', 'channel__channel_id', 'channel__name', 'user__user_id', 'user__name', 'content', 'message_id']
     ordering = ['-timestamp']
     fieldsets = [
-        (None, {'fields': ['timestamp', 'message_id', 'server', 'channel', 'user', 'content']}),
+        (None, {'fields': ['timestamp', 'message_id', 'server', 'channel', 'user', 'parent', 'deleted', 'content']}),
     ]
     raw_id_fields = ('server', 'channel', 'user',)
 
