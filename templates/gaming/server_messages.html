@@ -1,0 +1,35 @@
+{% extends 'gaming/base.html' %}
+{% block head_title %}{{ server.name }}{% endblock %}
+
+{% block page_header %}<img class="icon img-circle header-icon" src="{{ server.get_icon }}" /> {{ server.name }}{% endblock %}
+
+{% block content %}
+{% load set_var %}
+<table class="table table-hover">
+{% for message in server_messages %}
+    <tr>
+        <td>
+            <!-- <a id="{{ message.user.user_id }}" href="{{ message.user.get_url }}" class="btn btn-lg btn-link" data-toggle="tooltip" title="{{ message.user.name }}{% if message.user == server.owner %} (Owner){% endif %}"> -->
+            {% if last_user != message.user.pk %}
+            {{ message.timestamp }}<br />
+            <a id="{{ message.user.user_id }}" href="{{ message.user.get_url }}" data-toggle="tooltip" title="{{ message.user.name }}{% if message.user == server.owner %} (Owner){% endif %}">
+                <!-- <img src="{{ message.user.get_icon }}" class="icon img-circle body-icon" /> -->
+                {{ message.user.name }}
+            </a>
+            {% endif %}
+            <br/>
+            {{ message.content }}
+            {% if message.attachment_set.count >= 1 %}
+            <br />Attachments:
+                <ul>
+                    {% for attachment in message.attachments %}
+                    <li><a href="{{ attachment.url }}"><img src="{{ attachment.url }}" /></a>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </td>
+    </tr>
+    {% set last_user = message.user.pk %}
+{% endfor %}
+</table>
+{% endblock %}

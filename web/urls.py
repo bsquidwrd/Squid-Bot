@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^$', views.index_view, name='index'),
     url(r'^server/(?P<server_id>\w+)/$', views.server_view, name='server'),
     url(r'^user/(?P<user_id>\w+)/$', views.user_view, name='user'),
+    url(r'^server/(?P<server_id>\w+)/messages$', views.server_message_view, name='server_messages'),
     url(r'^accounts/update/', views.update_account_view, name='account_update'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^admin/', admin.site.urls),

@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from gaming.forms import UpdateAccountForm
-from gaming.models import Server, DiscordUser, ServerUser
+from gaming.models import Server, DiscordUser, ServerUser, Message, Attachment
 from gaming.utils import logify_exception_info
 
 
@@ -127,5 +127,29 @@ def user_view(request, user_id):
 
     context = {
         'discorduser': discorduser,
+    }
+    return render(request, template, context)
+
+
+def server_message_view(request, server_id):
+    template = 'gaming/server_messages.html'
+    search = request.GET.get('search', None)
+    try:
+        server = Server.objects.get(server_id=server_id)
+    except:
+        messages.add_message(request, messages.ERROR, "Requested server does not exist!")
+        return redirect('index')
+
+    server_messages = Message.objects.filter(server=server)
+    if search:
+        server_messages = server_messages.filter(get_query(search, ['user__name', 'user__user_id', 'content']))
+        messages.add_message(request, messages.INFO, 'Messages filtered based on query "{}"'.format(search))
+
+    server_messages.order_by('-timestamp')
+
+    context = {
+        'server': server,
+        'server_messages': server_messages,
+        'search': search,
     }
     return render(request, template, context)
