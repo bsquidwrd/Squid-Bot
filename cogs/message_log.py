@@ -10,7 +10,7 @@ import web.wsgi
 from django.utils import timezone
 from django.db import models
 from django.utils import timezone
-from gaming.models import DiscordUser, Server, Channel, Log, Message
+from gaming.models import DiscordUser, Server, Channel, Log, Message, Attachment
 from gaming.utils import logify_exception_info, logify_object
 
 
@@ -51,10 +51,19 @@ class MessageLog:
 
         if user and server and channel:
             timestamp = pytz.utc.localize(message.timestamp)
-            Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)
+            m = Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)[0]
+            if len(message.attachments) >= 1:
+                for a in message.attachments:
+                    attachment = Attachment.objects.get_or_create(attachment_id=a['id'], url=a['url'], timestamp=timestamp, user=user, channel=channel, server=server)[0]
+                    m.attachments.add(attachment)
+            m.save()
 
     async def on_message_edit(self, before, after):
         """ Update the message that's been edited """
+        if before.content == after.content:
+            # The event is thrown for when Discord loads an image preview
+            # So this is here to prevent two messages of the same exact info
+            return
         message = after
         user = self.get_user(message.author)
         server = self.get_server(message.server)

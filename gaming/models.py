@@ -135,10 +135,23 @@ class Message(models.Model):
     channel = models.ForeignKey('Channel')
     user = models.ForeignKey('DiscordUser')
     parent = models.ForeignKey('Message', blank=True, null=True)
+    attachments = models.ManyToManyField('Attachment')
     timestamp = models.DateTimeField()
     content = models.TextField()
     message_id = models.CharField(max_length=4000)
     deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{} - {} - {} - {}'.format(self.timestamp, self.user, self.channel, self.server)
+
+
+class Attachment(models.Model):
+    server = models.ForeignKey('Server')
+    channel = models.ForeignKey('Channel')
+    user = models.ForeignKey('DiscordUser')
+    attachment_id = models.CharField(max_length=4000)
+    url = models.URLField()
+    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return '{} - {} - {} - {}'.format(self.timestamp, self.user, self.channel, self.server)
