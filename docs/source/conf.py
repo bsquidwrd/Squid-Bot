@@ -48,7 +48,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'Squid Bot'
 copyright = '2016, Squid-Bot'
-author = 'Squid-Bot'
+author = 'bsquidwrd'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -152,6 +152,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'SquidBot', 'Squid Bot Documentation',
-     author, 'SquidBot', 'One line description of project.',
+     author, 'SquidBot', 'A bot with many talents.',
      'Miscellaneous'),
 ]
