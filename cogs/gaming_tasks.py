@@ -13,6 +13,18 @@ from gaming.utils import logify_exception_info, logify_object, current_line
 
 
 class GamingTasks:
+    """
+    Runs misc tasks
+
+    bot : Required[str]
+        The bot instance that is currently running
+
+    - Creates a :class:`gaming.models.Channel` object for every Channel in the Server
+    - Creates a :class:`gaming.models.Server` object for every Server the bot is a part of
+    - Creates a :class:`gaming.models.DiscordUser` object for every User on each Server the bot is a part of
+    - Associates a :class:`gaming.models.Channel` with every :class:`gaming.models.DiscordUser` that has access
+    - Processes :class:`gaming.models.Task` that are pending
+    """
     def __init__(self, bot):
         self.bot = bot
         self.task_runner = bot.loop.create_task(self.run_tasks())
