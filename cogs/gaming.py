@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 from .utils import checks
-from .utils.data import Data
 
 import web.wsgi
 from django.db import models
@@ -13,35 +12,8 @@ from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from gaming.models import DiscordUser, Game, GameUser, Server, ServerUser, Role, GameSearch, Channel, Task, Log, ChannelUser
-from gaming.utils import logify_exception_info, logify_object
+from gaming.utils import logify_exception_info, logify_object, paginate
 
-DISCORD_MSG_CHAR_LIMIT = 2000
-
-def paginate(content, *, length=DISCORD_MSG_CHAR_LIMIT, reserve=0):
-    """
-    Split up a large string or list of strings into chunks for sending to discord.
-    """
-    if type(content) == str:
-        contentlist = content.split('\n')
-    elif type(content) == list:
-        contentlist = content
-    else:
-        raise ValueError("Content must be str or list, not %s" % type(content))
-
-    chunks = []
-    currentchunk = ''
-
-    for line in contentlist:
-        if len(currentchunk) + len(line) < length - reserve:
-            currentchunk += line + '\n'
-        else:
-            chunks.append(currentchunk)
-            currentchunk = ''
-
-    if currentchunk:
-        chunks.append(currentchunk)
-
-    return chunks
 
 class Gaming:
     """
@@ -50,7 +22,6 @@ class Gaming:
     def __init__(self, bot):
         self.bot = bot
         self.populate_info()
-        super().__init__()
 
     def __unload(self):
         """Called when the cog is unloaded"""
@@ -382,9 +353,11 @@ class Gaming:
             await self.bot.delete_message(question_message)
 
         if isinstance(game, Game):
-            # ToDo: Ask the user if they want to join a currently (non-full) game group
-            # or if they want to start their own search
-            # Somehow limit the number of people per group to 5 (or some other good number)
+            """
+            .. todo:: Ask the user if they want to join a currently (non-full) game group
+            or if they want to start their own search
+            Somehow limit the number of people per group to 5 (or some other good number)
+            """
             current_searches = self.get_game_searches(game=game)
             current_game_channels = self.get_game_channels(game=game)
             game_channel = None

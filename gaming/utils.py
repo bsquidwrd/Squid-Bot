@@ -3,6 +3,35 @@ import sys
 from django.core import serializers
 from inspect import getframeinfo, getouterframes, currentframe
 
+DISCORD_MSG_CHAR_LIMIT = 2000
+
+
+def paginate(content, *, length=DISCORD_MSG_CHAR_LIMIT, reserve=0):
+    """
+    Split up a large string or list of strings into chunks for sending to Discord.
+    """
+    if type(content) == str:
+        contentlist = content.split('\n')
+    elif type(content) == list:
+        contentlist = content
+    else:
+        raise ValueError("Content must be str or list, not %s" % type(content))
+
+    chunks = []
+    currentchunk = ''
+
+    for line in contentlist:
+        if len(currentchunk) + len(line) < length - reserve:
+            currentchunk += line + '\n'
+        else:
+            chunks.append(currentchunk)
+            currentchunk = ''
+
+    if currentchunk:
+        chunks.append(currentchunk)
+
+    return chunks
+
 
 def logify_object(obj):
     """
