@@ -20,7 +20,12 @@
 import os
 import sys
 import django
+from shutil import copyfile
 sys.path.insert(0, os.path.abspath('../..'))
+on_rtd = os.getenv('READTHEDOCS') == 'True'
+if on_rtd:
+    copyfile('../../web/environment_example.py', '../../web/environment.py')
+import web.environment
 os.environ['DJANGO_SETTINGS_MODULE'] = 'web.settings'
 django.setup()
 
