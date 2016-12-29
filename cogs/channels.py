@@ -5,7 +5,6 @@ from discord.ext.commands import Bot
 from datetime import datetime, timedelta
 import discord
 from .utils import checks
-from .utils.data import Data
 
 import web.wsgi
 from django.utils import timezone
