@@ -44,6 +44,9 @@ def paginate(content, *, length=DISCORD_MSG_CHAR_LIMIT, reserve=0):
     return chunks
 
 class Gaming:
+    """
+    The base of everything this bot project is made for
+    """
     def __init__(self, bot):
         self.bot = bot
         self.populate_info()
@@ -109,7 +112,7 @@ class Gaming:
 
     def get_server(self, server):
         """
-        Returns a Server object after getting or creating the server
+        Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
         s, created = Server.objects.get_or_create(server_id=server.id)
         try:
@@ -126,7 +129,7 @@ class Gaming:
 
     def get_user(self, member):
         """
-        Returns a DiscordUser object after getting or creating the user
+        Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
         Does not create users for Bots
         """
         u, created = DiscordUser.objects.get_or_create(user_id=member.id)
@@ -159,7 +162,9 @@ class Gaming:
         return (game_search, created)
 
     def get_game_searches(self, user=None, game=None, server=None):
-        """ Get GameSearch for the specified user and/or game. If none provided, return all """
+        """
+        Get :class:`gaming.models.GameSearch` for the specified user and/or game. If none provided, return all
+        """
         game_searches = GameSearch.objects.filter(cancelled=False, game_found=False, expire_date__gte=timezone.now())
         if isinstance(user, DiscordUser):
             game_searches = game_searches.filter(user=user)
@@ -199,7 +204,11 @@ class Gaming:
         ).order_by('-expire_date', '-num_users')
 
     async def create_game_channel(self, ctx, game, searches=None):
-        """ Gets/Creates a channel for the game selected """
+        """
+        Creates/Gets a :class:`gaming.models.Channel` for the selected :class:`gaming.models.Game`
+
+        Returns an instance of :class:`gaming.models.Channel`
+        """
         server = ctx.message.server
         mserver = Server.objects.get(server_id=server.id)
 
@@ -223,16 +232,22 @@ class Gaming:
 
     # Events
     async def on_ready(self):
-        """ Bot is loaded, do stuff """
+        """
+        Bot is loaded, populate information that is needed for this cog
+        """
         self.populate_info()
 
     async def on_member_join(self, member):
-        """ A new member has joined, do stuff with them """
+        """
+        A new member has joined, make sure there are instance of :class:`gaming.models.Server` and :class:`gaming.models.DiscordUser` for this event
+        """
         server = self.get_server(member.server)
         user = self.get_user(member)
 
     async def on_member_remove(self, member):
-        """ A member has been kicked/banned or has left a server, do something """
+        """
+        A member has been kicked/banned or has left a server, deleted their instances of :class:`gaming.models.ServerUser`
+        """
         server = self.get_server(member.server)
         user = self.get_user(member)
         server_users = ServerUser.objects.filter(user=user, server=server)
@@ -247,7 +262,9 @@ class Gaming:
         log_item.save()
 
     async def on_member_update(self, before, after):
-        """ This is to populate games and users automatically """
+        """
+        This is to populate games and users automatically
+        """
         server = self.get_server(after.server)
         user = self.get_user(after)
         if not user or after.bot:
@@ -435,7 +452,9 @@ class Gaming:
 
     @commands.command(name='lfgstop', pass_context=True)
     async def looking_for_game_remove(self, ctx, *, game_search_key: str = None, page_number: str = None):
-        """Stop searching for a game"""
+        """
+        Stop searching for a game
+        """
         user = self.get_user(ctx.message.author)
         server = self.get_server(ctx.message.server)
         games_removed = []
@@ -523,7 +542,9 @@ class Gaming:
 
     @commands.command(name='whoplays', pass_context=True)
     async def who_plays(self, ctx, *, game_search_key: str = None, page_number: str = None):
-        """See who has played a certain game in the past"""
+        """
+        See who has played a certain game in the past
+        """
         user = self.get_user(ctx.message.author)
         server = self.get_server(ctx.message.server)
         games = Game.objects.all()
@@ -595,6 +616,9 @@ class Gaming:
     @commands.command(name='lfgpurge', pass_context=True, hidden=True)
     @checks.is_owner()
     async def looking_for_game_purge(self, ctx, *args):
+        """
+        Cancel all current :class:`gaming.models.GameSearch`
+        """
         game_searches = self.get_game_searches()
         question_message = await self.bot.say('\n**Are you sure you want to cancel all active game searches?**\nActive Searches: `{}`.'.format(game_searches.count()))
         def check(msg):

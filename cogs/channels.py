@@ -13,6 +13,9 @@ from django.db import models
 from gaming.models import DiscordUser, Server, Channel, ServerUser
 
 class PrivateChannel:
+    """
+    Used to create Private Channels for Users when requested
+    """
     def __init__(self, bot):
         self.bot = bot
         self.populate_info()
@@ -33,6 +36,9 @@ class PrivateChannel:
                 self.get_server_user(user, server)
 
     def get_user(self, member):
+        """
+        Get a :class:`gaming.models.DiscordUser` object for the member
+        """
         # Returns a DiscordUser object after getting or creating the user
         # Does not do anything for a bot user
         if member.bot:
@@ -40,29 +46,46 @@ class PrivateChannel:
         return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
 
     def get_server(self, discord_server):
+        """
+        Get a :class:`gaming.models.Server` object for the discord_server
+        """
         return Server.objects.get_or_create(server_id=discord_server.id, defaults={'name': discord_server.name})[0]
 
     def get_server_user(self, member, discord_server):
+        """
+        Get a :class:`gaming.models.ServerUser` object for the member and discord_server
+        """
         user = self.get_user(member)
         server = self.get_server(discord_server)
         return ServerUser.objects.get_or_create(user=user, server=server)
 
     def get_channel(self, dchannel, user, server):
+        """
+        Get a :class:`gaming.models.Channel` object for the dchannel, user and server
+        """
         return Channel.objects.get_or_create(channel_id=dchannel.id, user=user, server=server, private=True, defaults={'name': dchannel.name})[0]
     # End methods
 
     # Events
     async def on_ready(self):
+        """
+        When the cog is ready, populate all the information it will need like Servers and Users
+        """
         self.populate_info()
 
     async def on_member_join(self, member):
+        """
+        When a member joins a server, make sure they have a :class:`gaming.models.DiscordUser` object
+        """
         self.get_user(member)
 
     async def on_member_remove(self, member):
         pass
 
     async def on_member_update(self, before, after):
-        """This is to populate games and users automatically"""
+        """
+        When a member does something that causes this even to be thrown, make sure they have a :class:`gaming.models.DiscordUser` object
+        """
         self.get_user(after)
     # End Events
 

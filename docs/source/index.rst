@@ -11,6 +11,7 @@ Welcome to Squid Bot's documentation!
     :caption: Contents:
 
     django
+    bot
     utils
 
 

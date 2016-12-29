@@ -4,9 +4,15 @@ import discord.utils
 
 
 def is_owner_check(message):
+    """
+    Checks if the message author is the Bot owner
+    """
     return message.author.id == os.getenv('SQUID_BOT_OWNER_ID', '131224383640436736')
 
 def is_owner():
+    """
+    Returns True/False depending on if the message author is the Bot Owner
+    """
     return commands.check(lambda ctx: is_owner_check(ctx.message))
 
 # The permission system of the bot is based on a "just works" basis
@@ -20,6 +26,9 @@ def is_owner():
 # Of course, the owner will always be able to execute commands.
 
 def check_permissions(ctx, perms):
+    """
+    Checks if the user has a specific permissions
+    """
     msg = ctx.message
     if is_owner_check(msg):
         return True
@@ -30,6 +39,9 @@ def check_permissions(ctx, perms):
     return all(getattr(resolved, name, None) == value for name, value in perms.items())
 
 def role_or_permissions(ctx, check, **perms):
+    """
+    Checks if the user has permission, either from a Role or just a specific Permission
+    """
     if check_permissions(ctx, perms):
         return True
 
@@ -42,18 +54,27 @@ def role_or_permissions(ctx, check, **perms):
     return role is not None
 
 def mod_or_permissions(**perms):
+    """
+    Decorator for `role_or_permissions` or if they have the 'Bot Mod' or 'Bot Admin' role
+    """
     def predicate(ctx):
         return role_or_permissions(ctx, lambda r: r.name in ('Bot Mod', 'Bot Admin'), **perms)
 
     return commands.check(predicate)
 
 def admin_or_permissions(**perms):
+    """
+    Decorator for `role_or_permissions` or if they have the 'Bot Admin' role
+    """
     def predicate(ctx):
         return role_or_permissions(ctx, lambda r: r.name == 'Bot Admin', **perms)
 
     return commands.check(predicate)
 
 def is_in_servers(*server_ids):
+    """
+    Decorator for checking if the ctx server is in a list of server_ids
+    """
     def predicate(ctx):
         server = ctx.message.server
         if server is None:
