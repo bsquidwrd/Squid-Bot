@@ -9,6 +9,18 @@ from gaming.utils import logify_exception_info
 
 
 class DiscordUser(models.Model):
+    """
+    Used to represent a User on Discord
+
+    user_id : Required[str]
+        A unique string to represent the User on Discord (The User ID)
+    name : Optional[str]
+        The users Discord Username
+    bot : Optional[bool]
+        Whether or not the user is a bot
+    avatar_url : Optional[str]
+        The URL a users avatar can be found
+    """
     user_id = models.CharField(max_length=4000, unique=True)
     name = models.CharField(max_length=4000)
     bot = models.BooleanField(default=False)
@@ -21,9 +33,15 @@ class DiscordUser(models.Model):
         return display_name
 
     def get_icon(self):
+        """
+        Returns the URL used for a Users Avatar
+        """
         return self.avatar_url
 
     def get_url(self):
+        """
+        Returns a link to view the User in the webapp
+        """
         return reverse('user', args=[self.user_id])
 
     class Meta:
@@ -32,6 +50,14 @@ class DiscordUser(models.Model):
 
 
 class Game(models.Model):
+    """
+    Used to represent a Game on Discord
+
+    name : Required[str]
+        A unique string to represent the Game
+    url : Optional[str]
+        The URL provided when the game was gotten from Discord (usually blank)
+    """
     name = models.CharField(max_length=4000)
     url = models.URLField(blank=True, null=True, default="")
 
@@ -44,6 +70,14 @@ class Game(models.Model):
 
 
 class GameUser(models.Model):
+    """
+    Associates users to a game that they've played
+
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The DiscordUser in question
+    game : Required[:class:`gaming.models.Game`]
+        The Game in question
+    """
     user = models.ForeignKey('DiscordUser')
     game = models.ForeignKey('Game')
 
@@ -56,6 +90,18 @@ class GameUser(models.Model):
 
 
 class Server(models.Model):
+    """
+    Represents a Server/Guild on DiscordUser
+
+    owner : Optional[:class:`gaming.models.DiscordUser`]
+        The owner of the Server
+    server_id : Required[str]
+        The Server ID on Discord
+    name : Optional[str]
+        The name of the server
+    icon : Optional[str]
+        The current icon hash for the server
+    """
     owner = models.ForeignKey('DiscordUser', blank=True, null=True)
     server_id = models.CharField(max_length=4000, unique=True)
     name = models.CharField(max_length=4000, blank=True, null=True, default="")
@@ -68,9 +114,15 @@ class Server(models.Model):
         return display_name
 
     def get_url(self):
+        """
+        Returns a link to the Server page on the webapp
+        """
         return reverse('server', args=[self.server_id])
 
     def get_icon(self):
+        """
+        Returns the URL for the server icon
+        """
         return "https://cdn.discordapp.com/icons/{}/{}.jpg".format(self.server_id, self.icon)
 
     class Meta:
@@ -92,6 +144,32 @@ class Role(models.Model):
 
 
 class Channel(models.Model):
+    """
+    Represents a Channel on Discord
+
+    server : Required[:class:`gaming.models.Server`]
+        The Server this Channel is associated with
+    user : Optional[:class:`gaming.models.DiscordUser`]
+        The DiscordUser this channel was created for (ex: Private Channel)
+    game : Optional[:class:`gaming.models.Game`]
+        The Game associated with this Channel
+    channel_id : Required[str]
+        The Channel ID as assigned from Discord to this Channel
+    name : Required[str]
+        The name of this Channel
+    created_date : Required[timestamp]
+        When the Channel was created
+    expire_date : Optional[timestamp]
+        When the Channel expires (ex: Game Channel expires after x minutes)
+    private : Optional[bool]
+        If the Channel is a Private Channel (ex: A Channel created for a specific DiscordUser)
+    deleted : Optional[bool]
+        If the Channel has been deleted from the Server
+    game_channel = Optional[bool]
+        If the Channel is a associated with a Game
+    warning_sent = Option[bool]
+        This is used if the Channel is a Game Channel and is a place to store whether or not a warning was sent stating the Channel is going to be deleted soon
+    """
     server = models.ForeignKey('Server')
     user = models.ForeignKey('DiscordUser', blank=True, null=True)
     game = models.ForeignKey('Game', blank=True, null=True)
@@ -119,6 +197,14 @@ class Channel(models.Model):
 
 
 class ChannelUser(models.Model):
+    """
+    Stores the association of a DiscordUser to a Channel
+
+    channel : Required[:class:`gaming.models.Channel`]
+        The Channel in question
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User in question
+    """
     channel = models.ForeignKey('Channel')
     user = models.ForeignKey('DiscordUser')
 
@@ -131,6 +217,28 @@ class ChannelUser(models.Model):
 
 
 class Message(models.Model):
+    """
+    Represents a Message on DiscordUser
+
+    server : Required[:class:`gaming.models.Server`]
+        The Server on which the Message was sent
+    channel : Required[:class:`gaming.models.Channel`]
+        The Channel in which the Message was sent
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User who sent the Message
+    parent : Optional[:class:`gaming.models.Message`]
+        If the Message was edited, this represents the "before"
+    attachments : Optional[:class:`gaming.models.Attachment`]
+        The Attachments associated with this Message (ex: A picture was sent)
+    timestamp : Required[timestamp]
+        The date and time the Message was sent
+    content : Required[str]
+        The Message content
+    message_id : Required[str]
+        The ID assigned by Discord to this Message
+    deleted : Optional[bool]
+        Whether or not the Message has been deleted
+    """
     server = models.ForeignKey('Server')
     channel = models.ForeignKey('Channel')
     user = models.ForeignKey('DiscordUser')
@@ -146,6 +254,22 @@ class Message(models.Model):
 
 
 class Attachment(models.Model):
+    """
+    Represents an Attachment object that was sent through DiscordUser
+
+    server : Required[:class:`gaming.models.Server`]
+        The Server on which the Attachment was sent
+    channel : Required[:class:`gaming.models.Channel`]
+        The Channel in which the Attachment was sent
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User who sent the Attachment
+    attachment_id : Required[str]
+        The ID assigned to this Attachment by Discord
+    url : Required[url]
+        The URL to which the Attachment was uploaded
+    timestamp : Required[timestamp]
+        The date and time the Attachment was uploaded
+    """
     server = models.ForeignKey('Server')
     channel = models.ForeignKey('Channel')
     user = models.ForeignKey('DiscordUser')
@@ -158,6 +282,22 @@ class Attachment(models.Model):
 
 
 class GameSearch(models.Model):
+    """
+    Represents a Search for a Game
+
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User searching for a Game
+    game : Required[:class:`gaming.models.Game`]
+        The Game the User is searching for
+    created_date : Optional[timestamp]
+        When the Search was started
+    expire_date : Optional[timestamp]
+        When the Search expires
+    cancelled : Optional[bool]
+        Whether or not the Search has been cancelled
+    game_found : Option[bool]
+        Whether or not the Search was successful and the User found a Game
+    """
     user = models.ForeignKey('DiscordUser')
     game = models.ForeignKey('Game')
     # server = models.ForeignKey('Server')
@@ -181,6 +321,14 @@ class GameSearch(models.Model):
 
 
 class ServerUser(models.Model):
+    """
+    Represents a User to Server relationship
+
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User in question
+    server : Required[:class:`gaming.models.Server`]
+        The Server in question
+    """
     user = models.ForeignKey('DiscordUser')
     server = models.ForeignKey('Server')
 
@@ -193,6 +341,36 @@ class ServerUser(models.Model):
 
 
 class Task(models.Model):
+    """
+    Represents a Task that needs to be compelted
+    Ex: Add a User to a Game Channel on Server join
+
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User that the Task is to be run for
+    server : Required[:class:`gaming.models.Server`]
+        The Server that the Task should be run on
+    game : Optional[:class:`gaming.models.Game`]
+        The Game associated with this Task
+    channel : Optional[:class:`gaming.models.Channel`]
+        The Channel associated with this Task
+    task : Required[str]
+        The type of Task to perform
+    task_info : Optional[str]
+        Any additinal information needed to perform this Task
+
+        .. note::
+            **Task Types**
+
+            - ATG: Add to a game
+    created_date : Optional[timestamp]
+        When the Task was created
+    expire_date : Optional[timestamp] Default: 15 minutes after `created_date`
+        When the Task expires if it hasn't been completed yet
+    cancelled : Optional[bool]
+        Whether or not the Task has been cancelled
+    completed : Optional[bool]
+        Whether or not the Task has been completed
+    """
     ADD_TO_GAME_CHAT = 'ATG'
     TASK_TYPES = (
         (ADD_TO_GAME_CHAT, 'Add to a game'),
@@ -220,6 +398,23 @@ class Task(models.Model):
 
 
 class Log(models.Model):
+    """
+    Used to Log any and every action taken by the bot
+
+    timestamp : Optional[timestamp]
+        The date and time the Log was created
+    message_token : Optional[str]
+        A unique token to represent this Log (Makes searching for a specific log easy)
+    message : Required[str]
+        The actions taken that are being logged
+    email : Optional[bool]
+        Whether or not an email should be sent from the Log being created to the Admins
+        NOTE: The moment this is marked True and saved, an email will be sent immediately!
+    subject : Optional[str]
+        The subject of the email if one is to be sent out. If nothing is specified, a generic one will be generated.
+    body : Optional[str]
+        the body of the email if one is to be sent out. If nothing is specified, a generic one will be generated.
+    """
     timestamp = models.DateTimeField(default=timezone.now)
     message_token = models.CharField(blank=True, null=True, max_length=50)
     message = models.TextField(default="")
@@ -231,6 +426,13 @@ class Log(models.Model):
         return "[%s] - %s" % (self.timestamp, self.message_token)
 
     def generate_log_token(self, save=True):
+        """
+        Used to generate a unique token for this Log
+
+        Called by a signal if no message_token is specified (recommended)
+
+        If an error occurs generating a token, a new Log will be created with the exception information and a token of "ERROR_GENERATING_LOG_TOKEN"
+        """
         try:
             if self.message_token is None or self.message_token == '':
                 self.message_token = self.generate_token()
