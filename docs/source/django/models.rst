@@ -1,7 +1,7 @@
 .. currentmodule:: gaming.models
 
-Gaming Classes
-==============
+Models
+======
 
 
 Discord User

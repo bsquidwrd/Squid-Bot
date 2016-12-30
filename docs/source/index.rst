@@ -10,8 +10,8 @@ Welcome to Squid Bot's documentation!
     :maxdepth: 2
     :caption: Contents:
 
-    django
-    bot
+    django/django
+    bot/bot
     utils
 
 

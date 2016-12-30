@@ -7,4 +7,4 @@ This project uses Django as it's backend
     :maxdepth: 2
     :caption: Contents:
 
-    classes
+    models
