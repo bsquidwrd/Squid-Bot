@@ -199,7 +199,7 @@ class Quotes:
             quote_id = message[1].strip()
             try:
                 quote = Quote.objects.get(quote_id=quote_id)
-                pretty_datetime = quote.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
+                pretty_datetime = quote.timestamp.strftime("%Y-%m-%d at %H:%M:%S UTC")
                 await self.bot.say("Date Created: `{}`\nUser: `{}`\nAdded By: `{}`\nMessage:\n```{}```\n".format(pretty_datetime, quote.user.name, quote.added_by.name, quote.message), delete_after=60)
             except Quote.DoesNotExist as e:
                 await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
