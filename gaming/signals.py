@@ -15,7 +15,7 @@ def generate_log_token(sender, instance, *args, **kwargs):
 
 
 @receiver(pre_save, sender=Quote)
-def generate_log_token(sender, instance, *args, **kwargs):
+def generate_quote_id(sender, instance, *args, **kwargs):
     if isinstance(instance, Quote):
         if instance.quote_id is None or instance.quote_id == '':
             instance.generate_quote_id(save=False)
