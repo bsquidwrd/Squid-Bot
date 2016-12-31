@@ -493,7 +493,9 @@ class Log(models.Model):
     def generate_log_token(self, save=True):
         """
         Used to generate a unique token for this Log
+
         Called by a signal if no message_token is specified (recommended)
+
         If an error occurs generating a token, a new Log will be created with the exception information and a token of "ERROR_GENERATING_LOG_TOKEN"
         """
         try:
