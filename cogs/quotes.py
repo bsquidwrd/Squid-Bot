@@ -11,7 +11,7 @@ from django.db import models
 from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
-from gaming.models import DiscordUser, Server, ServerUser, Quote
+from gaming.models import DiscordUser, Server, ServerUser, Quote, Log
 from gaming.utils import logify_exception_info, logify_object, paginate
 
 
@@ -21,21 +21,12 @@ class Quotes:
     """
     def __init__(self, bot):
         self.bot = bot
-        self.populate_info()
 
     def __unload(self):
         """Called when the cog is unloaded"""
         pass
 
     # Class methods
-    def populate_info(self):
-        """ Populate all users and servers """
-        for server in self.bot.servers:
-            s = self.get_server(server)
-            for user in server.members:
-                u = self.get_user(user)
-                self.get_server_user(u, s)
-
     def get_server(self, server):
         """
         Returns a :class:`gaming.models.Server` object after getting or creating the server
@@ -81,17 +72,17 @@ class Quotes:
         server = self.get_server(discord_server)
         return ServerUser.objects.get_or_create(user=user, server=server)[0]
 
-    def beautify_quote(quote):
+    def beautify_quote(self, quote):
         """
         .. todo:: Implement beautify_quote to return a "pretty" form of the quote
         """
-        pass
+        return quote.message
 
-    def beautify_quotes(user):
+    def beautify_quotes(self, user):
         """
         .. todo:: Implement beautify_quotes to return a "pretty" form of quotes from this user
         """
-        pass
+        return "\n".join([q.message for q in Quote.objects.filter(user=user)])
     # End class methods
 
     # Events
@@ -99,7 +90,7 @@ class Quotes:
         """
         Bot is loaded, populate information that is needed for this cog
         """
-        self.populate_info()
+        pass
 
     async def on_member_join(self, member):
         """
@@ -123,11 +114,17 @@ class Quotes:
     @checks.is_owner()
     async def quote_command(self, ctx, *args):
         """
-        Create or retrieve a quote
+        Quote everything!
+
         Add a quote: ?quote add <@user> <quote>
+
         Retrieve all quotes for a user: ?quote user <@user>
+
         Get a specific quote: ?quote get <id>
+
         Get a random quote: ?quote random
+
+        Get information for a quote: ?quote info <id>
         """
         server = self.get_server(ctx.message.server)
         user = self.get_user(ctx.message.author)
@@ -153,9 +150,9 @@ class Quotes:
             content = " ".join(message[2::])
             try:
                 quote = Quote.objects.create(timestamp=timezone.now(), user=quote_user, added_by=user, server=server, message=content)
-                await self.bot.say("{0}, Your quote was create successfully! The Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote id {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
+                await self.bot.say("{0}, Your quote was create successfully! The Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote get {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
             except Exception as e:
-                log_item = Log.objects.create("{}\nError creating Quote\n{}\nquote_user: {}\nuser: {}\nserver: {}\nmessage: {}\nmentions: {}".format(logify_exception_info(), e, quote_user, user, server, message, mentions))
+                log_item = Log.objects.create(message="{}\nError creating Quote\n{}\nquote_user: {}\nuser: {}\nserver: {}\nmessage: {}\nmentions: {}".format(logify_exception_info(), e, quote_user, user, server, message, mentions))
                 await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
                 return
 
@@ -172,14 +169,14 @@ class Quotes:
             else:
                 await self.bot.say("{}, Please only mention one User for this Quote".format(ctx.message.author.mention), delete_after=30)
                 return
-            await self.bot.say("{}".format(self.beautify_quotes(quote_user)), delete_after=30)
+            await self.bot.say("{}".format(self.beautify_quotes(quote_user)), delete_after=60)
 
         elif action == "random":
             """
             Return a random Quote
             """
             quote = Quote.random_quote()
-            await self.bot.say("{}".format(self.beautify_quote(quote)), delete_after=30)
+            await self.bot.say("{}".format(self.beautify_quote(quote)), delete_after=60)
 
         elif action == "get":
             """
@@ -188,12 +185,27 @@ class Quotes:
             quote_id = message[1].strip()
             try:
                 quote = Quote.objects.get(quote_id=quote_id)
-                await self.bot.say("{}".format(self.beautify_quote(quote), delete_after=30)
+                await self.bot.say("{}".format(self.beautify_quote(quote)), delete_after=60)
             except Quote.DoesNotExist as e:
                 await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
             except Exception as e:
-                log_item = Log.objects.create("{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
-                await self.bot.say("{}, an error has occurred. Please contact my Owner with the following code: `{}`")
+                log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
+                await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
+
+        elif action == "info":
+            """
+            Return the information about a specific quote
+            """
+            quote_id = message[1].strip()
+            try:
+                quote = Quote.objects.get(quote_id=quote_id)
+                pretty_datetime = quote.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
+                await self.bot.say("Date Created: `{}`\nUser: `{}`\nAdded By: `{}`\nMessage:\n```{}```\n".format(pretty_datetime, quote.user.name, quote.added_by.name, quote.message), delete_after=60)
+            except Quote.DoesNotExist as e:
+                await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
+            except Exception as e:
+                log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
+                await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
 
         else:
             await self.bot.say("{}: I didn't quite understand your command, please run `?help quote` to learn how to use this command.".format(ctx.message.author.mention), delete_after=30)
