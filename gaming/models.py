@@ -369,7 +369,9 @@ class Quote(models.Model):
     def generate_quote_id(self, save=True):
         """
         Used to generate a unique ID for this Quote
+
         Called by a signal if no quote_id is specified (recommended)
+
         If an error occurs generating an ID, a Log will be created with the exception information
         """
         try:
