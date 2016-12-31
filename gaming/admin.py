@@ -228,7 +228,26 @@ class AttachmentAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['timestamp', 'server', 'channel', 'user', 'url',]}),
     ]
+    readonly_fields = ('timestamp',)
     raw_id_fields = ('server', 'channel', 'user',)
+
+
+class QuoteAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    date_hierarchy = 'timestamp'
+    list_display = ('get_display_name', 'timestamp', 'server', 'user', 'added_by', 'quote_id')
+    list_display_links = ('get_display_name',)
+    search_fields = ['quote_id', 'server__server_id', 'server__name', 'user__user_id', 'user__name', 'message']
+    ordering = ['-timestamp']
+    fieldsets = [
+        (None, {'fields': ['timestamp', 'quote_id', 'server', 'user', 'added_by', 'message',]}),
+    ]
+    readonly_fields = ('timestamp', 'quote_id')
+    raw_id_fields = ('server', 'added_by', 'user',)
 
 
 admin.site.register(DiscordUser, DiscordUserAdmin)
@@ -244,3 +263,4 @@ admin.site.register(Log, LogAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChannelUser, ChannelUserAdmin)
 admin.site.register(Attachment, AttachmentAdmin)
+admin.site.register(Quote, QuoteAdmin)

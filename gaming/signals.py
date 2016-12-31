@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from gaming.utils import logify_exception_info
-from gaming.models import Log
+from gaming.models import Log, Quote
 
 
 @receiver(pre_save, sender=Log)
@@ -12,6 +12,13 @@ def generate_log_token(sender, instance, *args, **kwargs):
     if isinstance(instance, Log):
         if instance.message_token is None or instance.message_token == '':
             instance.generate_log_token(save=False)
+
+
+@receiver(pre_save, sender=Quote)
+def generate_log_token(sender, instance, *args, **kwargs):
+    if isinstance(instance, Quote):
+        if instance.quote_id is None or instance.quote_id == '':
+            instance.generate_quote_id(save=False)
 
 
 @receiver(post_save, sender=Log)

@@ -63,3 +63,8 @@ Log
 ---
 .. autoclass:: Log
    :members:
+
+Quote
+-----
+.. autoclass:: Quote
+    :members:

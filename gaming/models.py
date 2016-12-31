@@ -2,6 +2,7 @@ import random
 import string
 
 from django.db import models
+from django.db.models.aggregates import Count
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
@@ -340,6 +341,68 @@ class ServerUser(models.Model):
         verbose_name_plural = "Server Users"
 
 
+class Quote(models.Model):
+    """
+    Quotes to track as requested by any user
+
+    user : Required[:class:`gaming.models.DiscordUser`]
+        The User who said the thing
+    server : Required[:class:`gaming.models.Server`]
+        The Server in which the User said this
+    added_by : Required[:class:`gaming.models.DiscordUser`]
+        Who added the Quote
+    message : Required[str]
+        What the User said
+    timestamp : Required[timestamp]
+        When the Quote was created
+    """
+    quote_id = models.CharField(blank=True, null=True, max_length=50)
+    user = models.ForeignKey('DiscordUser')
+    server = models.ForeignKey('Server')
+    added_by = models.ForeignKey('DiscordUser', related_name='added_by')
+    message = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return '{0.server} - {0.user} {0.added_by}'.format(self)
+
+    def generate_quote_id(self, save=True):
+        """
+        Used to generate a unique ID for this Quote
+        Called by a signal if no quote_id is specified (recommended)
+        If an error occurs generating an ID, a Log will be created with the exception information
+        """
+        try:
+            if self.quote_id is None or self.quote_id == '':
+                self.quote_id = self.generate_id()
+                if save:
+                    self.save()
+            return True
+        except Exception as e:
+            print(e)
+            Log.objects.create(message="{}\nError generating quote id.\n\nException:\n{}".format(logify_exception_info(), e))
+            return False
+
+    def generate_id(self):
+        quote_id = random_key(10)
+        if self.__class__.objects.filter(quote_id=quote_id).count() >= 1:
+            quote_id = self.generate_id()
+        return quote_id
+
+    @classmethod
+    def random_quote(cls):
+        """
+        Returns a random quote
+        """
+        count = cls.objects.all().count()
+        random_index = random.randint(0, count - 1)
+        return cls.objects.all()[random_index]
+
+    class Meta:
+        verbose_name = "Quote"
+        verbose_name_plural = "Quotes"
+
+
 class Task(models.Model):
     """
     Represents a Task that needs to be compelted
@@ -428,9 +491,7 @@ class Log(models.Model):
     def generate_log_token(self, save=True):
         """
         Used to generate a unique token for this Log
-
         Called by a signal if no message_token is specified (recommended)
-
         If an error occurs generating a token, a new Log will be created with the exception information and a token of "ERROR_GENERATING_LOG_TOKEN"
         """
         try:
@@ -451,11 +512,18 @@ class Log(models.Model):
         return key
 
     def generate_token(self):
-        token_key = self.random_key()
-        if len(self.__class__.objects.filter(message_token=token_key)) >= 1:
+        token_key = random_key()
+        if self.__class__.objects.filter(message_token=token_key).count() >= 1:
             token_key = self.generate_token()
         return token_key
 
     class Meta:
         verbose_name = 'Log'
         verbose_name_plural = 'Logs'
+
+
+def random_key(length=50):
+    key = ''
+    for i in range(length):
+        key += random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+    return key

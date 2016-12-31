@@ -30,7 +30,8 @@ initial_extensions = [
     'cogs.gaming',
     # 'cogs.gaming_tasks',
     'cogs.message_log',
-    'cogs.channels'
+    'cogs.channels',
+    'cogs.quotes'
 ]
 
 discord_logger = logging.getLogger('discord')
