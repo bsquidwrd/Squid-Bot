@@ -209,7 +209,7 @@ class Quotes:
             quote_id = message[1].strip()
             try:
                 quote = Quote.objects.get(quote_id=quote_id)
-                await self.bot.say("{}".format(self.beautify_quote(quote)), delete_after=60)
+                await self.bot.say("{}".format(self.beautify_quote(quote)))
             except Quote.DoesNotExist as e:
                 await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
             except Exception as e:
@@ -218,7 +218,6 @@ class Quotes:
 
         else:
             await self.bot.say("{}: I didn't quite understand your command, please run `?help quote` to learn how to use this command.".format(ctx.message.author.mention), delete_after=30)
-        await self.bot.delete_message(ctx.message)
     # End Commands
 
     # Errors
