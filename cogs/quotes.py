@@ -81,9 +81,9 @@ class Quotes:
         try:
             if not isinstance(quote, Quote):
                 raise Exception("Quote passed is not an instance of Quote. It is {}".format(type(quote)))
-            formatted_message = "Quote ID: `{}` - User: `{}`:\n```{}```".format(quote.quote_id, quote.user.name, quote.message)
+            pretty_datetime = quote.timestamp.strftime("%Y-%m-%d at %H:%M:%S UTC")
+            formatted_message = "```{}``` ~ {} {}\n".format(quote.message, quote.user.name, pretty_datetime)
         except Exception as e:
-            print(e)
             pass
         return formatted_message
 
@@ -98,7 +98,7 @@ class Quotes:
                 raise Exception("Quotes passed are not of type QuerySet. It is {}".format(type(quotes)))
             if quotes.count() == 0:
                 raise Exception("No quotes were passed")
-            formatted_message = "Requested Quotes:\n"
+            formatted_message = ""
             for quote in quotes:
                 formatted_message += "\n{}".format(self.beautify_quote(quote))
         except Exception as e:
@@ -144,8 +144,6 @@ class Quotes:
         Get a specific quote: ?quote get <id>
 
         Get a random quote: ?quote random
-
-        Get information for a quote: ?quote info <id>
         """
         server = self.get_server(ctx.message.server)
         user = self.get_user(ctx.message.author)
@@ -212,21 +210,6 @@ class Quotes:
             try:
                 quote = Quote.objects.get(quote_id=quote_id)
                 await self.bot.say("{}".format(self.beautify_quote(quote)), delete_after=60)
-            except Quote.DoesNotExist as e:
-                await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
-            except Exception as e:
-                log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
-                await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
-
-        elif action == "info":
-            """
-            Return the information about a specific quote
-            """
-            quote_id = message[1].strip()
-            try:
-                quote = Quote.objects.get(quote_id=quote_id)
-                pretty_datetime = quote.timestamp.strftime("%Y-%m-%d at %H:%M:%S UTC")
-                await self.bot.say("Date Created: `{}`\nUser: `{}`\nAdded By: `{}`\nMessage:\n```{}```\n".format(pretty_datetime, quote.user.name, quote.added_by.name, quote.message), delete_after=60)
             except Quote.DoesNotExist as e:
                 await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
             except Exception as e:
