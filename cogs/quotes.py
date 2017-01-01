@@ -169,7 +169,7 @@ class Quotes:
             content = " ".join(message[2::])
             try:
                 quote = Quote.objects.create(timestamp=timezone.now(), user=quote_user, added_by=user, server=server, message=content)
-                await self.bot.say("{0}, Your quote was create successfully! The Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote get {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
+                await self.bot.say("{0}, Your quote was create successfully!\nThe Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote get {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
                 await self.bot.delete_message(ctx.message)
             except Exception as e:
                 log_item = Log.objects.create(message="{}\nError creating Quote\n{}\nquote_user: {}\nuser: {}\nserver: {}\nmessage: {}\nmentions: {}".format(logify_exception_info(), e, quote_user, user, server, message, mentions))
