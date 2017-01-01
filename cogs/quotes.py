@@ -82,7 +82,7 @@ class Quotes:
             if not isinstance(quote, Quote):
                 raise Exception("Quote passed is not an instance of Quote. It is {}".format(type(quote)))
             pretty_datetime = quote.timestamp.strftime("%Y-%m-%d at %H:%M:%S UTC")
-            formatted_message = "```{}``` ~ {} {}\n".format(quote.message, quote.user.name, pretty_datetime)
+            formatted_message = "Quote ID: `{}`\n```{}``` ~ {} {}\n".format(quote.quote_id, quote.message, quote.user.name, pretty_datetime)
         except Exception as e:
             pass
         return formatted_message
