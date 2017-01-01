@@ -11,6 +11,7 @@ This project uses discord.py for the Discord Bot portion
     gaming
     gaming_tasks
     message_log
+    quotes
 
 
 .. automodule:: cogs.utils.checks
