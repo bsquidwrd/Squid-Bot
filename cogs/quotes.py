@@ -170,6 +170,7 @@ class Quotes:
             try:
                 quote = Quote.objects.create(timestamp=timezone.now(), user=quote_user, added_by=user, server=server, message=content)
                 await self.bot.say("{0}, Your quote was create successfully! The Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote get {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
+                await self.bot.delete_messaage(ctx.message)
             except Exception as e:
                 log_item = Log.objects.create(message="{}\nError creating Quote\n{}\nquote_user: {}\nuser: {}\nserver: {}\nmessage: {}\nmentions: {}".format(logify_exception_info(), e, quote_user, user, server, message, mentions))
                 await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
@@ -193,14 +194,14 @@ class Quotes:
                 await self.bot.say("{}, Please only mention one User for this Quote".format(ctx.message.author.mention), delete_after=30)
                 return
             quotes = Quote.objects.filter(user=quote_user)
-            await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page)), delete_after=60)
+            await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page)))
 
         elif action == "random":
             """
             Return a random Quote
             """
             quote = Quote.random_quote()
-            await self.bot.say("{}".format(self.beautify_quote(quote)), delete_after=60)
+            await self.bot.say("{}".format(self.beautify_quote(quote)))
 
         elif action == "get":
             """
