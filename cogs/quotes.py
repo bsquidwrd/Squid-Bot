@@ -2,6 +2,7 @@ import os
 import asyncio
 from datetime import timedelta
 import discord
+from django.db.models.query import QuerySet
 from discord.ext import commands
 from discord.ext.commands import Bot
 from .utils import checks
@@ -74,15 +75,35 @@ class Quotes:
 
     def beautify_quote(self, quote):
         """
-        .. todo:: Implement beautify_quote to return a "pretty" form of the quote
+        Return a "pretty" form of the quote
         """
-        return quote.message
+        formatted_message = '**No quote was found!\n Type `?help quote` to find out how to create a Quote**'
+        try:
+            if not isinstance(quote, Quote):
+                raise Exception("Quote passed is not an instance of Quote. It is {}".format(type(quote)))
+            formatted_message = "Quote ID: `{}` - User: `{}`:\n```{}```".format(quote.quote_id, quote.user.name, quote.message)
+        except Exception as e:
+            print(e)
+            pass
+        return formatted_message
 
-    def beautify_quotes(self, user):
+
+    def beautify_quotes(self, quotes, reserve=0, page=0):
         """
-        .. todo:: Implement beautify_quotes to return a "pretty" form of quotes from this user
+        Return a "pretty" form of multiple quotes
         """
-        return "\n".join([q.message for q in Quote.objects.filter(user=user)])
+        formatted_message = '**No quotes were found!\n Type `?help quote` to find out how to create a Quote**'
+        try:
+            if not isinstance(quotes, QuerySet):
+                raise Exception("Quotes passed are not of type QuerySet. It is {}".format(type(quotes)))
+            if quotes.count() == 0:
+                raise Exception("No quotes were passed")
+            formatted_message = "Requested Quotes:\n"
+            for quote in quotes:
+                formatted_message += "\n{}".format(self.beautify_quote(quote))
+        except Exception as e:
+            pass
+        return paginate(formatted_message, reserve=reserve)[page]
     # End class methods
 
     # Events
@@ -118,7 +139,7 @@ class Quotes:
 
         Add a quote: ?quote add <@user> <quote>
 
-        Retrieve all quotes for a user: ?quote user <@user>
+        Retrieve all quotes for a user: ?quote user <@user> <page number>
 
         Get a specific quote: ?quote get <id>
 
@@ -161,6 +182,10 @@ class Quotes:
             Return all quotes for a specific user
             """
             quote_user = None
+            try:
+                page = int(message[2].strip())
+            except:
+                page = 0
             if len(mentions) == 0:
                 await self.bot.say("{}, You must mention the User in the command!".format(ctx.message.author.mention), delete_after=30)
                 return
@@ -169,7 +194,8 @@ class Quotes:
             else:
                 await self.bot.say("{}, Please only mention one User for this Quote".format(ctx.message.author.mention), delete_after=30)
                 return
-            await self.bot.say("{}".format(self.beautify_quotes(quote_user)), delete_after=60)
+            quotes = Quote.objects.filter(user=quote_user)
+            await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page)), delete_after=60)
 
         elif action == "random":
             """
