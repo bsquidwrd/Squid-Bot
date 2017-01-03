@@ -132,7 +132,6 @@ class Quotes:
 
     # Commands
     @commands.command(name='quote', pass_context=True, hidden=True)
-    @checks.is_owner()
     async def quote_command(self, ctx, *args):
         """
         Quote everything!
