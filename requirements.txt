@@ -1,3 +1,4 @@
+git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice]
 aiohttp==1.0.5
 alabaster==0.7.9
 async-timeout==1.1.0
@@ -7,7 +8,6 @@ chardet==2.3.0
 coverage==4.2
 coveralls==1.1
 defusedxml==0.4.1
-discord.py==0.16.0
 Django==1.10.1
 django-allauth==0.29.0
 docopt==0.6.2
