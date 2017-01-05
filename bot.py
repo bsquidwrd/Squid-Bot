@@ -44,8 +44,7 @@ if debug_mode:
     log_filename = 'squid_bot.log'
 else:
     logs_dir = '/webapps/squidbot/logs/{0}/{1}'.format(bot_start_time.strftime('%Y'), bot_start_time.strftime('%m'))
-    if not os.path.isdir(logs_dir):
-        os.makedirs(logs_dir)
+    os.makedirs(logs_dir, exist_ok=True)
     log_filename = '{0}/squid_bot.{1}.log'.format(logs_dir, bot_start_time.strftime('%Y-%m-%d.%H-%M-%S'))
 
 handler = logging.FileHandler(filename=log_filename, encoding='utf-8', mode='w')
