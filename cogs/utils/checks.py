@@ -15,6 +15,8 @@ def is_owner():
     """
     return commands.check(lambda ctx: is_owner_check(ctx.message))
 
+
+
 # The permission system of the bot is based on a "just works" basis
 # You have permissions and the bot has permissions. If you meet the permissions
 # required to execute the command (and the bot does as well) then it goes through
@@ -81,3 +83,9 @@ def is_in_servers(*server_ids):
             return False
         return server.id in server_ids
     return commands.check(predicate)
+
+def is_personal_server():
+    """
+    Check if the server is mine or not
+    """
+    return is_in_servers('225471771355250688', '138036477643718656')
