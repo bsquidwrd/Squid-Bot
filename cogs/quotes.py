@@ -51,7 +51,7 @@ class Quotes:
         server = self.get_server(discord_server)
         return ServerUser.objects.get_or_create(user=user, server=server)[0]
 
-    def beautify_quote(self, quote):
+    def beautify_quote(self, quote, requester=None, multiple=False):
         """
         Return a "pretty" form of the quote
         """
@@ -60,13 +60,16 @@ class Quotes:
             if not isinstance(quote, Quote):
                 raise Exception("Quote passed is not an instance of Quote. It is {}".format(type(quote)))
             pretty_datetime = quote.timestamp.strftime("%Y-%m-%d at %H:%M:%S UTC")
-            formatted_message = "Quote ID: `{}`\n```{}``` ~ {} {}\n".format(quote.quote_id, quote.message, quote.user.name, pretty_datetime)
+            formatted_message = ""
+            if not multiple and requester is not None:
+                formatted_message += "Quote requested by `{}`\n".format(requester.name)
+            formatted_message += "Quote ID: `{}`\n```{}``` ~ {} {}\n".format(quote.quote_id, quote.message, quote.user.name, pretty_datetime)
         except Exception as e:
             pass
         return formatted_message
 
 
-    def beautify_quotes(self, quotes, reserve=0, page=0):
+    def beautify_quotes(self, quotes, reserve=0, page=0, requester=None):
         """
         Return a "pretty" form of multiple quotes
         """
@@ -77,8 +80,10 @@ class Quotes:
             if quotes.count() == 0:
                 raise Exception("No quotes were passed")
             formatted_message = ""
+            if requester is not None:
+                formatted_message += "Quotes requested by `{}`".format(requester.name)
             for quote in quotes:
-                formatted_message += "\n{}".format(self.beautify_quote(quote))
+                formatted_message += "\n{}".format(self.beautify_quote(quote, requester=requester, multiple=True))
         except Exception as e:
             pass
         return paginate(formatted_message, reserve=reserve)[page]
@@ -140,12 +145,10 @@ class Quotes:
         """
         server = self.get_server(ctx.message.server)
         user = self.get_user(ctx.message.author)
-        message = ctx.message.content.strip().split(" ")[1::]
-        mentions = ctx.message.mentions
         quote_id = quote_id.strip()
         try:
             quote = Quote.objects.get(quote_id=quote_id.strip())
-            await self.bot.say("{}".format(self.beautify_quote(quote)))
+            await self.bot.say("{}".format(self.beautify_quote(quote, requester=user)))
         except Quote.DoesNotExist as e:
             await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
         except Exception as e:
@@ -158,17 +161,45 @@ class Quotes:
         """
         Return all quotes for a specific user
         """
+        requester = self.get_user(ctx.message.author)
         quote_user = self.get_user(user)
         quotes = Quote.objects.filter(user=quote_user)
-        await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page)))
+        if quotes.count() >= 1:
+            await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page, requester=requester)))
+        else:
+            await self.bot.say("`{}` does not have any quotes!".format(quote_user.name))
 
-    @quote_command.command(name="random", pass_context=False)
+    @quote_command.command(name="random")
     @checks.is_personal_server()
     async def quote_random_command(self):
         """
         Return a random Quote
         """
-        await self.bot.say("{}".format(self.beautify_quote(Quote.random_quote())))
+        await self.bot.say("{}".format(self.beautify_quote(Quote.random_quote(), requester=self.get_user(ctx.message.author))))
+
+    @quote_command.command(name="delete", pass_context=True)
+    @checks.is_personal_server()
+    @checks.mod_or_permissions()
+    async def quote_delete_command(self, ctx, quote_id : str):
+        """
+        Delete a specific Quote with quote_id
+        """
+        user = self.get_user(ctx.message.author)
+        server = self.get_server(ctx.message.server)
+        try:
+            quote = Quote.objects.get(quote_id=quote_id.strip())
+            try:
+                quote.delete()
+                Log.objects.create(message="Quote ID {} deleted by {}.\nQuote Message:\n\n{}".format(quote_id, user, quote.message))
+                await self.bot.say("{}, The Quote with ID `{}` has been deleted!".format(ctx.message.author.mention, quote_id))
+            except Exception as e:
+                log_item = Log.objects.create(message="{}\nError deleting Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
+                await self.bot.say("{}, The Quote with ID `{}` could not be deleted! Please contact my owner with the following code: `{}`".format(ctx.message.author.mention, quote_id, log_item.message_token))
+        except Quote.DoesNotExist as e:
+            await self.bot.say("{}, A Quote qith ID `{}` cannot be found!".format())
+        except Exception as e:
+            log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
+            await self.bot.say("{}, There was an error when trying to get your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
     # End Commands
 
     # Errors
