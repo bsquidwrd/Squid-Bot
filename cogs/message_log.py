@@ -28,13 +28,13 @@ class MessageLog:
         """
         Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
-        return Server.objects.get_or_create(server_id=server.id, defaults={'name': server.name})[0]
+        return Server.objects.get_or_create(server_id=server.id)[0]
 
     def get_user(self, member):
         """
         Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
         """
-        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name, 'bot': member.bot})[0]
+        return DiscordUser.objects.get_or_create(user_id=member.id)[0]
 
     def get_server_user(self, user, server):
         """
@@ -49,7 +49,7 @@ class MessageLog:
         if channel.is_private:
             return False
         else:
-            return Channel.objects.get_or_create(channel_id=channel.id, server=self.get_server(channel.server), defaults={'name': channel.name})[0]
+            return Channel.objects.get_or_create(channel_id=channel.id, server=self.get_server(channel.server))[0]
 
     async def on_message(self, message):
         """

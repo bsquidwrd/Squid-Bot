@@ -28,7 +28,7 @@ For the nitty gritty, checkout my GitHub: {0}
 initial_extensions = [
     'cogs.admin',
     'cogs.gaming',
-    # 'cogs.gaming_tasks',
+    'cogs.tasks',
     'cogs.message_log',
     'cogs.channels',
     'cogs.quotes'
@@ -72,7 +72,7 @@ async def on_ready():
     if not hasattr(bot, 'uptime'):
         bot.uptime = bot_start_time
     squid_bot_game = discord.Game(name='?help', url=github_url, type=0)
-    await bot.change_status(game=squid_bot_game, idle=False)
+    await bot.change_presence(game=squid_bot_game, status=discord.Status.online, afk=False)
 
 @bot.event
 async def on_resumed():
@@ -111,7 +111,7 @@ async def give_github_url():
     """Gives a URL to the current bot changelog."""
     await bot.say('You can find out more about me here: {}'.format(github_url))
 
-@bot.command(hidden=True)
+@bot.command(aliases=['stop'], hidden=True)
 @checks.is_owner()
 async def restart():
     """Restarts the bot"""

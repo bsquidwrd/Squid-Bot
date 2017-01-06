@@ -17,7 +17,6 @@ class PrivateChannel:
     """
     def __init__(self, bot):
         self.bot = bot
-        self.populate_info()
         super().__init__()
 
     def __unload(self):
@@ -25,15 +24,6 @@ class PrivateChannel:
         pass
 
     # Class methods
-    def populate_info(self):
-        for server in self.bot.servers:
-            self.get_server(server)
-            for user in server.members:
-                if user.bot:
-                    continue
-                self.get_user(user)
-                self.get_server_user(user, server)
-
     def get_user(self, member):
         """
         Get a :class:`gaming.models.DiscordUser` object for the member
@@ -42,13 +32,13 @@ class PrivateChannel:
         # Does not do anything for a bot user
         if member.bot:
             return False
-        return DiscordUser.objects.get_or_create(user_id=member.id, defaults={'name': member.name})[0]
+        return DiscordUser.objects.get_or_create(user_id=member.id)[0]
 
     def get_server(self, discord_server):
         """
         Get a :class:`gaming.models.Server` object for the discord_server
         """
-        return Server.objects.get_or_create(server_id=discord_server.id, defaults={'name': discord_server.name})[0]
+        return Server.objects.get_or_create(server_id=discord_server.id)[0]
 
     def get_server_user(self, member, discord_server):
         """
@@ -70,13 +60,13 @@ class PrivateChannel:
         """
         When the cog is ready, populate all the information it will need like Servers and Users
         """
-        self.populate_info()
+        pass
 
     async def on_member_join(self, member):
         """
         When a member joins a server, make sure they have a :class:`gaming.models.DiscordUser` object
         """
-        self.get_user(member)
+        pass
 
     async def on_member_remove(self, member):
         pass
@@ -85,7 +75,7 @@ class PrivateChannel:
         """
         When a member does something that causes this even to be thrown, make sure they have a :class:`gaming.models.DiscordUser` object
         """
-        self.get_user(after)
+        pass
     # End Events
 
     # Commands

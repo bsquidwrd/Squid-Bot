@@ -33,17 +33,7 @@ class Quotes:
         Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
         s, created = Server.objects.get_or_create(server_id=server.id)
-        try:
-            s.name = server.name
-            s.icon = server.icon
-            s.owner = self.get_user(server.owner)
-            s.save()
-            Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
-        except Exception as e:
-            Log.objects.create(message="Error trying to get Server object for server {}.\n{}".format(s, logify_exception_info()))
-        finally:
-            s.save()
-            return s
+        return s
 
     def get_user(self, member):
         """
@@ -51,19 +41,7 @@ class Quotes:
         Does not create users for Bots
         """
         u, created = DiscordUser.objects.get_or_create(user_id=member.id)
-        try:
-            u.name = member.name
-            u.bot = member.bot
-            avatar_url = member.avatar_url
-            if avatar_url is None or avatar_url == "":
-                avatar_url = member.default_avatar_url
-            u.avatar_url = avatar_url
-            Log.objects.create(message="u: {0}\ncreated: {1}\nname: {0.name}\navatar_url: {0.avatar_url}\nbot: {0.bot}".format(u, created))
-        except Exception as e:
-            Log.objects.create(message="Error trying to get DiscordUser object for member: {}.\n{}".format(u, logify_exception_info()))
-        finally:
-            u.save()
-            return u
+        return u
 
     def get_server_user(self, member, discord_server):
         """
@@ -117,21 +95,18 @@ class Quotes:
         """
         A new member has joined, make sure there are instance of :class:`gaming.models.Server` and :class:`gaming.models.DiscordUser` for this event
         """
-        server = self.get_server(member.server)
-        user = self.get_user(member)
+        pass
 
     async def on_member_update(self, before, after):
         """
         This is to populate games and users automatically
         """
-        server = self.get_server(after.server)
-        user = self.get_user(after)
-        self.get_server_user(user, server)
-
+        pass
     # End Events
 
     # Commands
     @commands.command(name='quote', pass_context=True, hidden=True)
+    @checks.is_personal_server()
     async def quote_command(self, ctx, *args):
         """
         Quote everything!
