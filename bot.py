@@ -72,7 +72,7 @@ async def on_ready():
     if not hasattr(bot, 'uptime'):
         bot.uptime = bot_start_time
     squid_bot_game = discord.Game(name='?help', url=github_url, type=0)
-    await bot.change_status(game=squid_bot_game, idle=False)
+    await bot.change_presence(game=squid_bot_game, status=discord.Status.online, afk=False)
 
 @bot.event
 async def on_resumed():
