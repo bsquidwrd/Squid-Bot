@@ -111,7 +111,7 @@ async def give_github_url():
     """Gives a URL to the current bot changelog."""
     await bot.say('You can find out more about me here: {}'.format(github_url))
 
-@bot.command(hidden=True)
+@bot.command(aliases=['stop'], hidden=True)
 @checks.is_owner()
 async def restart():
     """Restarts the bot"""
