@@ -7,7 +7,7 @@ import discord
 import web.wsgi
 from django.utils import timezone
 from django.db import models
-from django.utils import timezone
+import pytz
 from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log, ChannelUser, ServerUser
 from gaming.utils import logify_exception_info, logify_object, current_line
 
@@ -140,7 +140,7 @@ class Tasks:
                 await self.run_scheduled_tasks()
                 await self.prune_channels()
                 await self.update_channels()
-                await asyncio.sleep(30)
+                await asyncio.sleep(60)
         except asyncio.CancelledError as e:
             pass
 
@@ -177,14 +177,14 @@ class Tasks:
         for server in Server.objects.all():
             # This will be to populate Channels and Users
             s = self.bot.get_server(server.server_id)
-            log_item = Log.objects.create(message="Starting population of channel users for server {}\n\n".format(server))
+            log_item = Log.objects.create(message="Starting population of channels for server {}\n\n".format(server))
             try:
                 for c in s.channels:
                     if c.is_private or c.type == ChannelType.voice:
                         continue
                     channel, created = Channel.objects.get_or_create(channel_id=c.id, server=server)
                     channel.name = c.name
-                    channel.created_date = c.created_at.aastimezone(timezone('UTC'))
+                    channel.created_date = pytz.timezone('UTC').localize(c.created_at)
                     channel.save()
                 channels = Channel.objects.filter(server=server, deleted=False)
                 log_item.message += "Found channels:\n{}\n\n".format(logify_object(channels))
@@ -200,14 +200,6 @@ class Tasks:
                             c.deleted = True
                             c.save()
                             continue
-                        for overwrite in c.overwrites:
-                            try:
-                                user = DiscordUser.objects.get_or_create(user_id=overwrite.id)[0]
-                                created = ChannelUser.objects.get_or_create(channel=channel, user=user)[1]
-                                log_item.message += "  - {0.name} ({0.user_id}) is in channel. Created: {}".format(user, created)
-                            except Exception as e:
-                                log_item.message += "- Failed: {}\n{}\n".format(logify_exception_info(), e)
-                            log_item.message += "\n"
                     except Exception as e:
                         log_item.message += "- Failed:\n{}\n{}\n".format(logify_exception_info(), e)
                     finally:
