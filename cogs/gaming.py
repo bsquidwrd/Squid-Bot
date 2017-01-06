@@ -21,7 +21,6 @@ class Gaming:
     """
     def __init__(self, bot):
         self.bot = bot
-        self.populate_info()
 
     def __unload(self):
         """Called when the cog is unloaded"""
@@ -73,30 +72,12 @@ class Gaming:
             pass
         return paginate(formatted_message, reserve=reserve)[page]
 
-    def populate_info(self):
-        """ Populate all users and servers """
-        for server in self.bot.servers:
-            s = self.get_server(server)
-            for user in server.members:
-                u = self.get_user(user)
-                self.get_server_user(u, s)
-
     def get_server(self, server):
         """
         Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
         s, created = Server.objects.get_or_create(server_id=server.id)
-        try:
-            s.name = server.name
-            s.icon = server.icon
-            s.owner = self.get_user(server.owner)
-            s.save()
-            Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
-        except Exception as e:
-            Log.objects.create(message="Error trying to get Server object for server {}.\n{}".format(s, logify_exception_info()))
-        finally:
-            s.save()
-            return s
+        return s
 
     def get_user(self, member):
         """
@@ -104,22 +85,11 @@ class Gaming:
         Does not create users for Bots
         """
         u, created = DiscordUser.objects.get_or_create(user_id=member.id)
-        try:
-            u.name = member.name
-            u.bot = member.bot
-            avatar_url = member.avatar_url
-            if avatar_url is None or avatar_url == "":
-                avatar_url = member.default_avatar_url
-            u.avatar_url = avatar_url
-            Log.objects.create(message="u: {0}\ncreated: {1}\nname: {0.name}\navatar_url: {0.avatar_url}\nbot: {0.bot}".format(u, created))
-        except Exception as e:
-            Log.objects.create(message="Error trying to get DiscordUser object for member: {}.\n{}".format(u, logify_exception_info()))
-        finally:
-            u.save()
-            return u
+        return u
 
     def get_server_user(self, user, server):
-        return ServerUser.objects.get_or_create(user=user, server=server)[0]
+        su, created = ServerUser.objects.get_or_create(user=user, server=server)
+        return su
 
     def create_game_search(self, user, game):
         """ Create a GameSearch object for a user if one does not exist or isn't active """
@@ -204,56 +174,27 @@ class Gaming:
     # Events
     async def on_ready(self):
         """
-        Bot is loaded, populate information that is needed for this cog
+        Bot is loaded, do stuff that needs to be done
         """
-        self.populate_info()
+        pass
 
     async def on_member_join(self, member):
         """
-        A new member has joined, make sure there are instance of :class:`gaming.models.Server` and :class:`gaming.models.DiscordUser` for this event
+        A new member has joined
         """
-        server = self.get_server(member.server)
-        user = self.get_user(member)
+        pass
 
     async def on_member_remove(self, member):
         """
-        A member has been kicked/banned or has left a server, deleted their instances of :class:`gaming.models.ServerUser`
+        A member has been kicked/banned or has left a server
         """
-        server = self.get_server(member.server)
-        user = self.get_user(member)
-        server_users = ServerUser.objects.filter(user=user, server=server)
-        log_item = Log(message="Deleting ServerUser objects for {}\n\n".format(user))
-        for server_user in server_users:
-            try:
-                server_user.delete()
-                delete_message = "- Deleted user {} for server {}".format(user, server)
-            except Exception as e:
-                delete_message = "- Could not delete user {} for server {}\n{}".format(user, server, e)
-            log_item.message += "{}\n".format(delete_message)
-        log_item.save()
+        pass
 
     async def on_member_update(self, before, after):
         """
-        This is to populate games and users automatically
+        A member has been updated somehow
         """
-        server = self.get_server(after.server)
-        user = self.get_user(after)
-        if not user or after.bot:
-            return
-        if before.game:
-            member = before
-        else:
-            member = after
-        game = member.game
-        if game is None:
-            return
-        possible_games = Game.objects.filter(name=game.name.strip())
-        if possible_games.count() == 0:
-            game = Game.objects.create(name=game.name.strip(), url=game.url)
-            GameUser.objects.get_or_create(user=user, game=game)
-        elif possible_games.count() == 1:
-            game = possible_games[0]
-            GameUser.objects.get_or_create(user=user, game=game)
+        pass
     # End Events
 
     # Commands
