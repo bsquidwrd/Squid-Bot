@@ -7,7 +7,7 @@ import discord
 import web.wsgi
 from django.utils import timezone
 from django.db import models
-from django.utils import timezone
+import pytz
 from gaming.models import DiscordUser, Game, GameUser, Server, Role, GameSearch, Channel, Task, Log, ChannelUser, ServerUser
 from gaming.utils import logify_exception_info, logify_object, current_line
 
@@ -184,7 +184,7 @@ class Tasks:
                         continue
                     channel, created = Channel.objects.get_or_create(channel_id=c.id, server=server)
                     channel.name = c.name
-                    channel.created_date = c.created_at.aastimezone(timezone('UTC'))
+                    channel.created_date = pytz.timezone('UTC').localize(c.created_at)
                     channel.save()
                 channels = Channel.objects.filter(server=server, deleted=False)
                 log_item.message += "Found channels:\n{}\n\n".format(logify_object(channels))
