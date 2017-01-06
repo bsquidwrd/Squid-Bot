@@ -9,7 +9,7 @@ This project uses discord.py for the Discord Bot portion
 
     channels
     gaming
-    gaming_tasks
+    tasks
     message_log
     quotes
 

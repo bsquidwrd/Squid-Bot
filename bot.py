@@ -28,7 +28,7 @@ For the nitty gritty, checkout my GitHub: {0}
 initial_extensions = [
     'cogs.admin',
     'cogs.gaming',
-    # 'cogs.gaming_tasks',
+    'cogs.tasks',
     'cogs.message_log',
     'cogs.channels',
     'cogs.quotes'
