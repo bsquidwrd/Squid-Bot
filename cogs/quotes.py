@@ -105,94 +105,70 @@ class Quotes:
     # End Events
 
     # Commands
-    @commands.command(name='quote', pass_context=True, hidden=True)
+    @commands.group(name="quote", pass_context=True)
     @checks.is_personal_server()
-    async def quote_command(self, ctx, *args):
+    async def quote_command(self, ctx):
         """
         Quote everything!
+        """
+        if ctx.invoked_subcommand is None:
+            await self.bot.say("{}: I didn't quite understand your command, please run `?help quote` to learn how to use this command.".format(ctx.message.author.mention), delete_after=30)
+        await self.bot.delete_message(ctx.message)
 
-        Add a quote: ?quote add <@user> <quote>
+    @quote_command.command(name="add", pass_context=True)
+    @checks.is_personal_server()
+    async def quote_add_command(self, ctx, user : discord.Member, *, message : str):
+        """
+        Create a quote for a specific User
+        """
+        quote_user = self.get_user(user)
+        server = self.get_server(ctx.message.server)
+        user = self.get_user(ctx.message.author)
+        content = message.strip()
+        try:
+            quote = Quote.objects.create(timestamp=timezone.now(), user=quote_user, added_by=user, server=server, message=content)
+            await self.bot.say("{0}, Your quote was create successfully!\nThe Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote get {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
+        except Exception as e:
+            log_item = Log.objects.create(message="{}\nError creating Quote\n{}\nquote_user: {}\nuser: {}\nserver: {}\nmessage: {}\nmentions: {}".format(logify_exception_info(), e, quote_user, user, server, message, mentions))
+            await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
 
-        Retrieve all quotes for a user: ?quote user <@user> <page number>
-
-        Get a specific quote: ?quote get <id>
-
-        Get a random quote: ?quote random
+    @quote_command.command(name="get", pass_context=True)
+    @checks.is_personal_server()
+    async def quote_get_command(self, ctx, quote_id : str):
+        """
+        Get a specific Quote based on quote_id
         """
         server = self.get_server(ctx.message.server)
         user = self.get_user(ctx.message.author)
         message = ctx.message.content.strip().split(" ")[1::]
         mentions = ctx.message.mentions
-
-        action = message[0].strip().lower()
-
-        if action == "add":
-            """
-            Create a quote for a specific :class:`gaming.models.DiscordUser` on :class:`gaming.models.Server`
-            """
-            quote_user = None
-            if len(mentions) == 0:
-                await self.bot.say("{}, You must mention the User in the command!".format(ctx.message.author.mention), delete_after=30)
-                return
-            elif len(mentions) == 1:
-                quote_user = self.get_user(mentions[0])
-            else:
-                await self.bot.say("{}, Please only mention one User for this Quote".format(ctx.message.author.mention), delete_after=30)
-                return
-
-            content = " ".join(message[2::])
-            try:
-                quote = Quote.objects.create(timestamp=timezone.now(), user=quote_user, added_by=user, server=server, message=content)
-                await self.bot.say("{0}, Your quote was create successfully!\nThe Quote ID is `{1}`\nYou can use this to reference it in the future by typing `?quote get {1}`".format(ctx.message.author.mention, quote.quote_id), delete_after=30)
-            except Exception as e:
-                log_item = Log.objects.create(message="{}\nError creating Quote\n{}\nquote_user: {}\nuser: {}\nserver: {}\nmessage: {}\nmentions: {}".format(logify_exception_info(), e, quote_user, user, server, message, mentions))
-                await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
-                return
-
-        elif action == "user":
-            """
-            Return all quotes for a specific user
-            """
-            quote_user = None
-            try:
-                page = int(message[2].strip())
-            except:
-                page = 0
-            if len(mentions) == 0:
-                await self.bot.say("{}, You must mention the User in the command!".format(ctx.message.author.mention), delete_after=30)
-                return
-            elif len(mentions) == 1:
-                quote_user = self.get_user(mentions[0])
-            else:
-                await self.bot.say("{}, Please only mention one User for this Quote".format(ctx.message.author.mention), delete_after=30)
-                return
-            quotes = Quote.objects.filter(user=quote_user)
-            await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page)))
-
-        elif action == "random":
-            """
-            Return a random Quote
-            """
-            quote = Quote.random_quote()
+        quote_id = quote_id.strip()
+        try:
+            quote = Quote.objects.get(quote_id=quote_id.strip())
             await self.bot.say("{}".format(self.beautify_quote(quote)))
+        except Quote.DoesNotExist as e:
+            await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
+        except Exception as e:
+            log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
+            await self.bot.say("{}, There was an error when trying to get your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
 
-        elif action == "get":
-            """
-            Try to get a specific Quote based on the ID passed
-            """
-            quote_id = message[1].strip()
-            try:
-                quote = Quote.objects.get(quote_id=quote_id)
-                await self.bot.say("{}".format(self.beautify_quote(quote)))
-            except Quote.DoesNotExist as e:
-                await self.bot.say("{}, I'm sorry but I can't find a quote with the ID `{}`".format(ctx.message.author.mention, quote_id), delete_after=30)
-            except Exception as e:
-                log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
-                await self.bot.say("{}, There was an error when trying to create your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
+    @quote_command.command(name="user", pass_context=True)
+    @checks.is_personal_server()
+    async def quote_user_command(self, ctx, user : discord.Member, page : int = 0):
+        """
+        Return all quotes for a specific user
+        """
+        quote_user = self.get_user(user)
+        quotes = Quote.objects.filter(user=quote_user)
+        await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page)))
 
-        else:
-            await self.bot.say("{}: I didn't quite understand your command, please run `?help quote` to learn how to use this command.".format(ctx.message.author.mention), delete_after=30)
-        await self.bot.delete_message(ctx.message)
+    @quote_command.command(name="random", pass_context=False)
+    @checks.is_personal_server()
+    async def quote_random_command(self):
+        """
+        Return a random Quote
+        """
+        await self.bot.say("{}".format(self.beautify_quote(Quote.random_quote())))
     # End Commands
 
     # Errors
