@@ -177,7 +177,7 @@ class Tasks:
         for server in Server.objects.all():
             # This will be to populate Channels and Users
             s = self.bot.get_server(server.server_id)
-            log_item = Log.objects.create(message="Starting population of channel users for server {}\n\n".format(server))
+            log_item = Log.objects.create(message="Starting population of channels for server {}\n\n".format(server))
             try:
                 for c in s.channels:
                     if c.is_private or c.type == ChannelType.voice:
