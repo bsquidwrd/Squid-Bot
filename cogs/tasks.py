@@ -200,14 +200,6 @@ class Tasks:
                             c.deleted = True
                             c.save()
                             continue
-                        for overwrite in c.overwrites:
-                            try:
-                                user = DiscordUser.objects.get_or_create(user_id=overwrite.id)[0]
-                                created = ChannelUser.objects.get_or_create(channel=channel, user=user)[1]
-                                log_item.message += "  - {0.name} ({0.user_id}) is in channel. Created: {}".format(user, created)
-                            except Exception as e:
-                                log_item.message += "- Failed: {}\n{}\n".format(logify_exception_info(), e)
-                            log_item.message += "\n"
                     except Exception as e:
                         log_item.message += "- Failed:\n{}\n{}\n".format(logify_exception_info(), e)
                     finally:
