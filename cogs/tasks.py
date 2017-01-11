@@ -60,7 +60,6 @@ class Tasks:
     def get_user(self, member):
         """
         Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
-        Does not create users for Bots
         """
         u, created = DiscordUser.objects.get_or_create(user_id=member.id)
         try:
