@@ -28,19 +28,19 @@ class MessageLog:
         """
         Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
-        return Server.objects.get_or_create(server_id=server.id)[0]
+        return Server.objects.get(server_id=server.id)
 
     def get_user(self, member):
         """
         Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
         """
-        return DiscordUser.objects.get_or_create(user_id=member.id)[0]
+        return DiscordUser.objects.get(user_id=member.id)
 
     def get_server_user(self, user, server):
         """
         Returns a :class:`gaming.models.ServerUser` object
         """
-        return ServerUser.objects.get_or_create(user=user, server=server)[0]
+        return ServerUser.objects.get(user=user, server=server)
 
     def get_channel(self, channel):
         """
@@ -49,7 +49,7 @@ class MessageLog:
         if channel.is_private:
             return False
         else:
-            return Channel.objects.get_or_create(channel_id=channel.id, server=self.get_server(channel.server))[0]
+            return Channel.objects.get(channel_id=channel.id, server=self.get_server(channel.server))
 
     async def on_message(self, message):
         """
@@ -61,7 +61,7 @@ class MessageLog:
 
         if user and server and channel:
             timestamp = pytz.utc.localize(message.timestamp)
-            m = Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)[0]
+            m = Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)
             if len(message.attachments) >= 1:
                 for a in message.attachments:
                     attachment = Attachment.objects.get_or_create(attachment_id=a['id'], url=a['url'], timestamp=timestamp, user=user, channel=channel, server=server)[0]

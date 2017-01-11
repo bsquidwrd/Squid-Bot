@@ -32,13 +32,13 @@ class PrivateChannel:
         # Does not do anything for a bot user
         if member.bot:
             return False
-        return DiscordUser.objects.get_or_create(user_id=member.id)[0]
+        return DiscordUser.objects.get(user_id=member.id)
 
     def get_server(self, discord_server):
         """
         Get a :class:`gaming.models.Server` object for the discord_server
         """
-        return Server.objects.get_or_create(server_id=discord_server.id)[0]
+        return Server.objects.get(server_id=discord_server.id)
 
     def get_server_user(self, member, discord_server):
         """
@@ -46,13 +46,13 @@ class PrivateChannel:
         """
         user = self.get_user(member)
         server = self.get_server(discord_server)
-        return ServerUser.objects.get_or_create(user=user, server=server)
+        return ServerUser.objects.get(user=user, server=server)
 
     def get_channel(self, dchannel, user, server):
         """
         Get a :class:`gaming.models.Channel` object for the dchannel, user and server
         """
-        return Channel.objects.get_or_create(channel_id=dchannel.id, user=user, server=server, private=True, defaults={'name': dchannel.name})[0]
+        return Channel.objects.get(channel_id=dchannel.id, user=user, server=server, private=True)
     # End methods
 
     # Events
