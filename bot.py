@@ -108,7 +108,7 @@ async def do(ctx, times : int, *, command):
 
 @bot.command(name='git')
 async def give_github_url():
-    """Gives a URL to the current bot changelog."""
+    """Gives the URL of the Github repo"""
     await bot.say('You can find out more about me here: {}'.format(github_url))
 
 @bot.command(aliases=['stop'], hidden=True)
