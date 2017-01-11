@@ -60,7 +60,6 @@ class Tasks:
     def get_user(self, member):
         """
         Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
-        Does not create users for Bots
         """
         u, created = DiscordUser.objects.get_or_create(user_id=member.id)
         try:
@@ -117,22 +116,6 @@ class Tasks:
         server = self.get_server(after.server)
         user = self.get_user(after)
         server_user = self.get_server_user(user=user, server=server)
-        if not user or after.bot:
-            return
-        if before.game:
-            member = before
-        else:
-            member = after
-        game = member.game
-        if game is None:
-            return
-        possible_games = Game.objects.filter(name=game.name.strip())
-        if possible_games.count() == 0:
-            game = Game.objects.create(name=game.name.strip(), url=game.url)
-            GameUser.objects.get_or_create(user=user, game=game)
-        elif possible_games.count() == 1:
-            game = possible_games[0]
-            GameUser.objects.get_or_create(user=user, game=game)
 
     async def run_tasks(self):
         try:

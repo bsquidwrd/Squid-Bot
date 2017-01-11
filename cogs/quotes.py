@@ -32,16 +32,14 @@ class Quotes:
         """
         Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
-        s, created = Server.objects.get_or_create(server_id=server.id)
-        return s
+        return Server.objects.get(server_id=server.id)
 
     def get_user(self, member):
         """
         Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
         Does not create users for Bots
         """
-        u, created = DiscordUser.objects.get_or_create(user_id=member.id)
-        return u
+        return DiscordUser.objects.get(user_id=member.id)
 
     def get_server_user(self, member, discord_server):
         """
@@ -49,8 +47,8 @@ class Quotes:
         """
         user = self.get_user(member)
         server = self.get_server(discord_server)
-        return ServerUser.objects.get_or_create(user=user, server=server)[0]
-
+        ServerUser.objects.get(user=user, server=server)
+        
     def beautify_quote(self, quote, requester=None, multiple=False):
         """
         Return a "pretty" form of the quote
