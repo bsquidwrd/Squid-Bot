@@ -200,6 +200,20 @@ class Quotes:
         except Exception as e:
             log_item = Log.objects.create(message="{}\nError retrieving Quote\n{}\nquote_id: {}".format(logify_exception_info(), e, quote_id))
             await self.bot.say("{}, There was an error when trying to get your Quote. Please contact my Owner with the following code: `{}`".format(ctx.message.author.mention, log_item.message_token), delete_after=30)
+
+    @quote_command.command(name="created", pass_context=True)
+    @checks.is_personal_server()
+    async def quote_created_command(self, ctx, user : discord.Member, page : int = 0):
+        """
+        Get Quotes created by the specified user
+        """
+        requester = self.get_user(ctx.message.author)
+        user = self.get_user(user)
+        quotes = Quote.objects.filter(user=user)
+        if quotes.count() >= 1:
+            await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page, requester=requester)))
+        else:
+            await self.bot.say("`{}` does not have any quotes!".format(user.name))
     # End Commands
 
     # Errors
