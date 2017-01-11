@@ -205,7 +205,7 @@ class Quotes:
     @checks.is_personal_server()
     async def quote_created_command(self, ctx, user : discord.Member, page : int = 0):
         """
-        asdf
+        Get Quotes created by the specified user
         """
         requester = self.get_user(ctx.message.author)
         user = self.get_user(user)
