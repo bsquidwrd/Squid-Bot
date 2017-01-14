@@ -48,7 +48,7 @@ class Quotes:
         user = self.get_user(member)
         server = self.get_server(discord_server)
         ServerUser.objects.get(user=user, server=server)
-        
+
     def beautify_quote(self, quote, requester=None, multiple=False):
         """
         Return a "pretty" form of the quote
@@ -167,9 +167,9 @@ class Quotes:
         else:
             await self.bot.say("`{}` does not have any quotes!".format(quote_user.name))
 
-    @quote_command.command(name="random")
+    @quote_command.command(name="random", pass_context=True)
     @checks.is_personal_server()
-    async def quote_random_command(self):
+    async def quote_random_command(self, ctx):
         """
         Return a random Quote
         """
