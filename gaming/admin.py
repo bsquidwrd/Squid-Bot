@@ -2,6 +2,31 @@ from django.contrib import admin
 from gaming.models import *
 
 
+class DiscordUserHistoryInline(admin.TabularInline):
+    model = DiscordUserHistory
+    extra = 0
+    max_num = 10
+    ordering = ('-timestamp',)
+    fields = ('timestamp', 'user', 'field_modified', 'old_value', 'new_value')
+
+    def get_readonly_fields(self, request, obj=None):
+        if self.fields:
+            return list(set(
+                [field for field in self.fields]
+            ))
+        else:
+            return list(set(
+                [field.name for field in self.opts.local_fields] +
+                [field.name for field in self.opts.local_many_to_many]
+            ))
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 class DiscordUserAdmin(admin.ModelAdmin):
     def get_display_name(self, obj):
         return str(obj)
@@ -15,6 +40,7 @@ class DiscordUserAdmin(admin.ModelAdmin):
     list_display = ('get_display_name', 'user_id', 'name',)
     list_display_links = ('get_display_name',)
     search_fields = ('user_id', 'name',)
+    inlines = [DiscordUserHistoryInline,]
 
 
 class GameAdmin(admin.ModelAdmin):
@@ -250,6 +276,24 @@ class QuoteAdmin(admin.ModelAdmin):
     raw_id_fields = ('server', 'added_by', 'user',)
 
 
+class DiscordUserHistoryAdmin(admin.ModelAdmin):
+    def get_display_name(self, obj):
+        return str(obj)
+
+    get_display_name.short_description = 'Display Name'
+
+    date_hierarchy = 'timestamp'
+    list_display = ('get_display_name', 'timestamp', 'user', 'field_modified', 'old_value', 'new_value')
+    list_display_links = ('get_display_name',)
+    search_fields = ['user__user_id', 'user__name', 'old_value', 'new_value']
+    ordering = ['-timestamp']
+    fieldsets = [
+        (None, {'fields': ['timestamp', 'user', 'field_modified', 'old_value', 'new_value',]}),
+    ]
+    readonly_fields = ('timestamp',)
+    raw_id_fields = ('user',)
+
+
 admin.site.register(DiscordUser, DiscordUserAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(GameUser, GameUserAdmin)
@@ -264,3 +308,4 @@ admin.site.register(Message, MessageAdmin)
 admin.site.register(ChannelUser, ChannelUserAdmin)
 admin.site.register(Attachment, AttachmentAdmin)
 admin.site.register(Quote, QuoteAdmin)
+admin.site.register(DiscordUserHistory, DiscordUserHistoryAdmin)
