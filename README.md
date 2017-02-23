@@ -1,4 +1,6 @@
-## Squid Bot [![Build Status](https://travis-ci.org/bsquidwrd/Squid-Bot.svg?branch=master)](https://travis-ci.org/bsquidwrd/Squid-Bot) [![Documentation Status](https://readthedocs.org/projects/squid-bot/badge/?version=latest)](http://squid-bot.readthedocs.io/en/latest/?badge=latest) [![Coverage Status](https://coveralls.io/repos/github/bsquidwrd/Squid-Bot/badge.svg?branch=master)](https://coveralls.io/github/bsquidwrd/Squid-Bot?branch=master)
+## Squid Bot
+[![Build Status](https://travis-ci.org/bsquidwrd/Squid-Bot.svg?branch=master)](https://travis-ci.org/bsquidwrd/Squid-Bot) [![Documentation Status](https://readthedocs.org/projects/squid-bot/badge/?version=latest)](http://squid-bot.readthedocs.io/en/latest/?badge=latest) [![Coverage Status](https://coveralls.io/repos/github/bsquidwrd/Squid-Bot/badge.svg?branch=master)](https://coveralls.io/github/bsquidwrd/Squid-Bot?branch=master)
+
 A bot of many talents
 
 ## Running
@@ -6,7 +8,7 @@ _NOTE: If you want to run this yourself, make sure the bot is a "Bot User"_
 
 I'd prefer if only my instance was running so the bot and users don't get confused. You should only need one main configuration file while the rest will be created automatically. In the `web` directory, rename [environment_example.py](web/environment_example.py) to `environment.py`
 
-[Click here to have the bot added to your server](https://discordapp.com/oauth2/authorize?client_id=225463490813493248&scope=bot&permissions=268692480)
+[Click here to have the bot added to your server](https://discordapp.com/oauth2/authorize?client_id=225463490813493248&scope=bot&permissions=257104)
 
 #### Environmental Variables
 - `SQUID_BOT_DEBUG_MODE:` Should the bot be in Debug mode
