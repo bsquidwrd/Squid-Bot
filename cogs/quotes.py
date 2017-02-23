@@ -161,7 +161,8 @@ class Quotes:
         """
         requester = self.get_user(ctx.message.author)
         quote_user = self.get_user(user)
-        quotes = Quote.objects.filter(user=quote_user)
+        server = self.get_server(ctx.message.server)
+        quotes = Quote.objects.filter(user=quote_user, server=server)
         if quotes.count() >= 1:
             await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page, requester=requester)))
         else:
@@ -173,7 +174,8 @@ class Quotes:
         """
         Return a random Quote
         """
-        await self.bot.say("{}".format(self.beautify_quote(Quote.random_quote(), requester=self.get_user(ctx.message.author))))
+        server = self.get_server(ctx.message.server)
+        await self.bot.say("{}".format(self.beautify_quote(Quote.random_quote(sserver=server), requester=self.get_user(ctx.message.author))))
 
     @quote_command.command(name="delete", pass_context=True)
     @checks.is_personal_server()
@@ -211,7 +213,7 @@ class Quotes:
         if quotes.count() >= 1:
             await self.bot.say("{}".format(self.beautify_quotes(quotes, page=page, requester=requester)))
         else:
-            await self.bot.say("`{}` does not have any quotes!".format(user.name))
+            await self.bot.say("`{}` has not created any quotes!".format(user.name))
     # End Commands
 
     # Errors

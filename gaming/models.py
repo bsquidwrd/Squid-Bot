@@ -4,6 +4,7 @@ import string
 from django.db import models
 from django.db.models.aggregates import Count
 from django.utils import timezone
+from django.utils.functional import lazy
 from django.core.urlresolvers import reverse
 
 from gaming.utils import logify_exception_info
@@ -33,6 +34,19 @@ class DiscordUser(models.Model):
             display_name = '{} ({})'.format(self.name, 'Bot' if self.bot else 'User')
         return display_name
 
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            original = DiscordUser.objects.get(pk=self.pk)
+            for field in self._meta.get_fields():
+                try:
+                    old_value = getattr(original, field.name)
+                    new_value = getattr(self, field.name)
+                    if old_value != new_value:
+                        DiscordUserHistory.objects.create(user=self, old_value=old_value, new_value=new_value, field_modified=field.name)
+                except Exception as e:
+                    pass
+        super().save(*args, **kwargs)
+
     def get_icon(self):
         """
         Returns the URL used for a Users Avatar
@@ -48,6 +62,34 @@ class DiscordUser(models.Model):
     class Meta:
         verbose_name = "Discord User"
         verbose_name_plural = "Discord Users"
+
+
+class DiscordUserHistory(models.Model):
+    """
+    Track changes made to a DiscordUser
+    """
+    USER_ID_FIELD = 'user_id'
+    USERNAME_FIELD = 'name'
+    BOT_FIELD = 'bot'
+    AVATAR_URL_FIELD = 'avatar_url'
+    FIELDS_TO_CHANGE = (
+        (USER_ID_FIELD, USER_ID_FIELD),
+        (USERNAME_FIELD, USERNAME_FIELD),
+        (BOT_FIELD, BOT_FIELD),
+        (AVATAR_URL_FIELD, AVATAR_URL_FIELD),
+    )
+    timestamp = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey('DiscordUser')
+    field_modified = models.CharField(max_length=4000, choices=FIELDS_TO_CHANGE)
+    old_value = models.CharField(max_length=4000)
+    new_value = models.CharField(max_length=4000)
+
+    def __str__(self):
+        return '{}'.format(self.user)
+
+    class Meta:
+        verbose_name = 'Discord User History'
+        verbose_name_plural = 'Discord User Histories'
 
 
 class Game(models.Model):
@@ -392,13 +434,16 @@ class Quote(models.Model):
         return quote_id
 
     @classmethod
-    def random_quote(cls):
+    def random_quote(cls, server=None):
         """
         Returns a random quote
         """
-        count = cls.objects.all().count()
+        quotes = cls.objects.all()
+        if server is not None:
+            quotes.filter(server=server)
+        count = quotes.count()
         random_index = random.randint(0, count - 1)
-        return cls.objects.all()[random_index]
+        return quotes[random_index]
 
     class Meta:
         verbose_name = "Quote"
