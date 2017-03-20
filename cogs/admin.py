@@ -3,9 +3,9 @@ from .utils import checks
 import discord
 import inspect
 
-# to expose to the eval command
 import datetime
 from collections import Counter
+from gaming import utils
 
 
 class Admin:
@@ -94,6 +94,13 @@ class Admin:
             except Exception as e:
                 print(e)
                 await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
+
+    @commands.command(name='version', pass_context=True, hidden=True)
+    async def version_command(self, *, ctx):
+        """
+        Print the version of the bot currently running
+        """
+        await self.bot.say('I am currently running version `{}`'.format(utils.get_version()))
 
 def setup(bot):
     bot.add_cog(Admin(bot))

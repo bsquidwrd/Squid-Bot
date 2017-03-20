@@ -59,3 +59,11 @@ def current_line():
     Returns the current line the function is called from
     """
     return getouterframes(currentframe())[1].lineno
+
+
+def get_version():
+    """
+    Returns the current version the bot is running
+    """
+    from gaming import __version__
+    return __version__
