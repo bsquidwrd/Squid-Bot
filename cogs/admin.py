@@ -96,7 +96,7 @@ class Admin:
                 await self.bot.say('Looks like an error occurred. Please have my owner check the logs.')
 
     @commands.command(name='version', pass_context=True, hidden=True)
-    async def version_command(self, *, ctx):
+    async def version_command(self, ctx):
         """
         Print the version of the bot currently running
         """
