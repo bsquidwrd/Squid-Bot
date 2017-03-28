@@ -5,7 +5,20 @@ import inspect
 
 import datetime
 from collections import Counter
+from django.conf import settings
 from gaming import utils
+
+
+def get_current_commit():
+    """
+    Returns the current version the bot is running
+    """
+    import os
+    import subprocess
+    git_dir = "{}/.git".format(settings.BASE_DIR)
+    if os.name == 'nt':
+        git_dir = "{}\\.git".format(settings.BASE_DIR)
+    return subprocess.check_output(["git", "--git-dir={}".format(git_dir), "rev-parse", "--verify", "HEAD", "--short"]).decode("utf-8")
 
 
 class Admin:
@@ -101,7 +114,7 @@ class Admin:
         Print the version of the bot currently running
         """
         member = ctx.message.server.get_member(self.bot.user.id)
-        current_commit = utils.get_current_commit()
+        current_commit = get_current_commit()
         commit_url = member.game.url + '/commit/' + current_commit
         msg = await self.bot.send_message(ctx.message.channel, 'I am currently running on commit `{}`\n\n{}'.format(current_commit, commit_url))
 

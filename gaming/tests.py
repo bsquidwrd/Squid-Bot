@@ -24,11 +24,3 @@ class ViewsTestCase(TestCase):
     def test_user_view(self):
         resp = self.client.get(reverse('user', kwargs={'user_id': self.discord_user.user_id}))
         self.assertEqual(resp.status_code, 200)
-
-
-class MiscTestCase(TestCase):
-    def setUp(self):
-        pass
-
-    def test_get_version(self):
-        self.assertIsInstance(utils.get_current_commit(), str)
