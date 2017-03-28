@@ -1,3 +1,8 @@
+static/bootstrap/* linguist-vendored
+static/admin/* linguist-vendored
+static/js/konami.js linguist-vendored
+static/js/konami.min.js linguist-vendored
+
 # Auto detect text files and perform LF normalization
 * text=auto
 

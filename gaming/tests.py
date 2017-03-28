@@ -31,4 +31,4 @@ class MiscTestCase(TestCase):
         pass
 
     def test_get_version(self):
-        self.assertIsInstance(utils.get_version(), str)
+        self.assertIsInstance(utils.get_current_commit(), str)

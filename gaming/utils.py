@@ -61,9 +61,9 @@ def current_line():
     return getouterframes(currentframe())[1].lineno
 
 
-def get_version():
+def get_current_commit():
     """
     Returns the current version the bot is running
     """
-    from gaming import __version__
-    return __version__
+    import subprocess
+    return subprocess.check_output(["git", "rev-parse", "--verify", "HEAD"]).decode("utf-8")[0:6]
