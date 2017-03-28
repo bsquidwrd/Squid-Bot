@@ -101,7 +101,7 @@ class Admin:
         Print the version of the bot currently running
         """
         member = ctx.message.server.get_member(self.bot.user.id)
-        current_commit = utils.get_current_commit().decode("utf-8")[0:6]
+        current_commit = utils.get_current_commit()
         commit_url = member.game.url + '/commit/' + current_commit
         commit_embed = discord.Embed(title='bsquidwrd/Squid-Bot@{}'.format(current_commit), type='link', provider={'url': None, 'name': 'GitHub'}, thumbnail={'url': 'https://avatars2.githubusercontent.com/u/6416656?v=3&s=200', 'width': 200, 'height': 200})
         # msg = await self.bot.send_message(ctx.message.channel, 'I am currently running on commit `{}`\n\n{}'.format(current_commit, commit_url))
