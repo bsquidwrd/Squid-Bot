@@ -59,11 +59,3 @@ def current_line():
     Returns the current line the function is called from
     """
     return getouterframes(currentframe())[1].lineno
-
-
-def get_current_commit():
-    """
-    Returns the current version the bot is running
-    """
-    import subprocess
-    return subprocess.check_output(["git", "rev-parse", "--verify", "HEAD"]).decode("utf-8")[0:6]
