@@ -16,7 +16,7 @@ class Tasks:
     """
     Runs misc tasks
 
-    bot : Required[str]
+    bot : Required[obj]
         The bot instance that is currently running
 
     - Creates a :class:`gaming.models.Channel` object for every Channel in the Server
@@ -44,14 +44,16 @@ class Tasks:
         """
         Returns a :class:`gaming.models.Server` object after getting or creating the server
         """
+        error = False
         s, created = Server.objects.get_or_create(server_id=server.id)
         try:
             s.name = server.name
             s.icon = server.icon
             s.owner = self.get_user(server.owner)
             s.save()
-            Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
+            # Log.objects.create(message="s: {0}\ncreated: {1}\nname: {0.name}\nicon: {0.icon}\nowner: {0.owner}".format(s, created))
         except Exception as e:
+            error = True
             Log.objects.create(message="Error trying to get Server object for server {}.\n{}".format(s, logify_exception_info()))
         finally:
             s.save()
@@ -61,6 +63,7 @@ class Tasks:
         """
         Returns a :class:`gaming.models.DiscordUser` object after getting or creating the user
         """
+        error = False
         u, created = DiscordUser.objects.get_or_create(user_id=member.id)
         try:
             u.name = member.name
@@ -69,8 +72,9 @@ class Tasks:
             if avatar_url is None or avatar_url == "":
                 avatar_url = member.default_avatar_url
             u.avatar_url = avatar_url
-            Log.objects.create(message="u: {0}\ncreated: {1}\nname: {0.name}\navatar_url: {0.avatar_url}\nbot: {0.bot}".format(u, created))
+            # Log.objects.create(message="u: {0}\ncreated: {1}\nname: {0.name}\navatar_url: {0.avatar_url}\nbot: {0.bot}".format(u, created))
         except Exception as e:
+            error = True
             Log.objects.create(message="Error trying to get DiscordUser object for member: {}.\n{}".format(u, logify_exception_info()))
         finally:
             u.save()
@@ -96,6 +100,7 @@ class Tasks:
         """
         A member has been kicked/banned or has left a server, deleted their instances of :class:`gaming.models.ServerUser`
         """
+        error = False
         server = self.get_server(member.server)
         user = self.get_user(member)
         server_users = ServerUser.objects.filter(user=user, server=server)
@@ -103,11 +108,13 @@ class Tasks:
         for server_user in server_users:
             try:
                 server_user.delete()
-                delete_message = "- Deleted user {} for server {}".format(user, server)
+                # delete_message = "- Deleted user {} for server {}".format(user, server)
             except Exception as e:
+                error = True
                 delete_message = "- Could not delete user {} for server {}\n{}".format(user, server, e)
             log_item.message += "{}\n".format(delete_message)
-        log_item.save()
+        if error:
+            log_item.save()
 
     async def on_member_update(self, before, after):
         """
@@ -128,9 +135,10 @@ class Tasks:
             pass
 
     async def prune_channels(self):
+        error = False
         channels = Channel.objects.filter(private=False, game_channel=True, expire_date__lte=timezone.now(), deleted=False)
         if channels.count() >= 1:
-            log_item = Log.objects.create(message="Running task to prune channels:\n{}\n\n".format(logify_object(channels)))
+            log_item = Log(message="Running task to prune channels:\n{}\n\n".format(logify_object(channels)))
             for channel in channels:
                 if channel is None:
                     continue
@@ -140,27 +148,31 @@ class Tasks:
                     if c is not None:
                         try:
                             await self.bot.delete_channel(c)
-                            log_item.message += '- Success'
+                            # log_item.message += '- Success'
                         except Exception as e:
+                            error = True
                             log_item.message += '- Failure\n\n{}{}\n'.format(logify_exception_info(), e)
                 except Exception as e:
                     # Channel no longer exists on server
+                        error = True
                     log_item.message += '- Failure\n\n{}{}\n'.format(logify_exception_info(), e)
                 finally:
                     channel.deleted = True
                     channel.save()
                 log_item.message += "\n\n"
                 await asyncio.sleep(1)
-            log_item.save()
+            if error:
+                log_item.save()
         else:
             # No channels found to be deleted
             pass
 
     async def update_channels(self):
+        error = False
         for server in Server.objects.all():
             # This will be to populate Channels and Users
             s = self.bot.get_server(server.server_id)
-            log_item = Log.objects.create(message="Starting population of channels for server {}\n\n".format(server))
+            log_item = Log(message="Starting population of channels for server {}\n\n".format(server))
             try:
                 for c in s.channels:
                     if c.is_private or c.type == ChannelType.voice:
@@ -170,50 +182,61 @@ class Tasks:
                     channel.created_date = pytz.timezone('UTC').localize(c.created_at)
                     channel.save()
                 channels = Channel.objects.filter(server=server, deleted=False)
-                log_item.message += "Found channels:\n{}\n\n".format(logify_object(channels))
+                # log_item.message += "Found channels:\n{}\n\n".format(logify_object(channels))
                 for channel in channels:
                     try:
-                        log_item.message += "Running for channel {}\n".format(channel)
+                        # log_item.message += "Running for channel {}\n".format(channel)
                         c = self.bot.get_channel(channel.channel_id)
                         if c.is_default:
-                            log_item.message += "- Channel is default channel, skipping...\n"
+                            # log_item.message += "- Channel is default channel, skipping...\n"
                             continue
                         if c is None:
-                            log_item.message += "- Channel is not found, marking as deleted\n"
+                            # log_item.message += "- Channel is not found, marking as deleted\n"
                             c.deleted = True
                             c.save()
                             continue
                     except Exception as e:
+                        error = True
                         log_item.message += "- Failed:\n{}\n{}\n".format(logify_exception_info(), e)
                     finally:
-                        log_item.message += "- Finished channel processing\n\n"
-                log_item.message += "\n"
+                        # log_item.message += "- Finished channel processing\n\n"
+                        pass
+                # log_item.message += "\n"
             except Exception as e:
+                error = True
                 log_item.message += "- Failed: {}\n{}\n".format(logify_exception_info(), e)
             finally:
-                log_item.save()
+                if error:
+                    log_item.save()
 
     async def run_scheduled_tasks(self):
+        error = False
         tasks = Task.objects.filter(cancelled=False, completed=False, expire_date__lte=timezone.now())
+        log_item = Log(message="Starting task processing\n")
         for task in tasks:
-            log_item.message += 'Running task for {} at {}\n'.format(task.user, timezone.now())
+            # log_item.message += 'Running task for {} at {}\n'.format(task.user, timezone.now())
             if task.task == Task.ADD_TO_GAME_CHAT:
                 try:
                     user = DiscordUser.objects.get(pk=task.user.pk)
                     game = Game.objects.get(pk=task.game.pk)
                     channel = Channel.objects.get(pk=task.channel.pk)
-                    log_item.message += 'Game: {}\nChannel: {}\nUser: {}\nTask PK: {}\n\n'.format(user, game, channel, task.pk)
+                    # log_item.message += 'Game: {}\nChannel: {}\nUser: {}\nTask PK: {}\n\n'.format(user, game, channel, task.pk)
                 except Game.DoesNotExist as e:
+                    error = True
                     log_item.message += '- Error finding game for task.\n{}{}\n'.format(logify_exception_info(), e)
                 except Channel.DoesNotExist as e:
+                    error = True
                     log_item.message += '- Error finding channel for game {}\n{}{}\n'.format(game, logify_exception_info(), e)
                 except Exception as e:
+                    error = True
                     log_item.message += '- Unknown error happened\n{}{}\n'.format(logify_exception_info(), e)
             else:
                 # Not really a task for some reason
-                log_item.message += '- I don\'t recognize the task type \'{}\'...'.format()
-            log_item.message += '- Finished processing task\n'
-            log_item.save()
+                # log_item.message += '- I don\'t recognize the task type \'{}\'...'.format()
+                pass
+            # log_item.message += '- Finished processing task\n'
+            if error:
+                log_item.save()
 
 
 def setup(bot):
