@@ -61,7 +61,7 @@ class MessageLog:
 
         if user and server and channel:
             timestamp = pytz.utc.localize(message.timestamp)
-            m = Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)
+            m, created = Message.objects.get_or_create(message_id=message.id, content=message.content, server=server, user=user, channel=channel, timestamp=timestamp)
             if len(message.attachments) >= 1:
                 for a in message.attachments:
                     attachment = Attachment.objects.get_or_create(attachment_id=a['id'], url=a['url'], timestamp=timestamp, user=user, channel=channel, server=server)[0]
