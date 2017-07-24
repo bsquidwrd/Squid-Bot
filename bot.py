@@ -63,10 +63,6 @@ async def on_command_error(error, ctx):
         print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
 
 @bot.event
-async def on_error(event, *args, **kwargs):
-    Log.objects.create(message="Bot Error: {}.\n{}\nArgs: {}\nKwargs:\n{}".format(event, logify_exception_info(), args, logify_dict(kwargs)))
-
-@bot.event
 async def on_ready():
     print('Logged in as:')
     print('Username: ' + bot.user.name)
@@ -97,10 +93,10 @@ async def on_command(command, ctx):
 
 @bot.event
 async def on_message(message):
-    server = Server.objects.get_or_create(server_id=message.server.id)
-    channel = Channel.objects.get_or_create(channel_id=message.channel.id, server=server)
-    user = DiscordUser.objects.get_or_create(user_id=message.author.id)
-    server_user = ServerUser.objects.get_or_create(user=user, server=server)
+    server = Server.objects.get_or_create(server_id=message.server.id)[0]
+    channel = Channel.objects.get_or_create(channel_id=message.channel.id, server=server)[0]
+    user = DiscordUser.objects.get_or_create(user_id=message.author.id)[0]
+    server_user = ServerUser.objects.get_or_create(user=user, server=server)[0]
     if message.author.bot:
         return
 
