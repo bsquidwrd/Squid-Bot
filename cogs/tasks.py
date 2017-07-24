@@ -154,7 +154,7 @@ class Tasks:
                             log_item.message += '- Failure\n\n{}{}\n'.format(logify_exception_info(), e)
                 except Exception as e:
                     # Channel no longer exists on server
-                        error = True
+                    error = True
                     log_item.message += '- Failure\n\n{}{}\n'.format(logify_exception_info(), e)
                 finally:
                     channel.deleted = True
