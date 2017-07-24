@@ -11,7 +11,8 @@ import os
 from collections import Counter
 
 import web.wsgi
-
+from gaming.models import Log, Channel, Server, DiscordUser, ServerUser
+from gaming.utils import logify_exception_info, logify_dict
 
 debug_mode = os.getenv('SQUID_BOT_DEBUG_MODE', 'true')
 if not isinstance(debug_mode, bool):
@@ -62,6 +63,10 @@ async def on_command_error(error, ctx):
         print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
 
 @bot.event
+async def on_error(event, *args, **kwargs):
+    Log.objects.create(message="Bot Error: {}.\n{}\nArgs: {}\nKwargs:\n{}".format(event, logify_exception_info(), args, logify_dict(kwargs)))
+
+@bot.event
 async def on_ready():
     print('Logged in as:')
     print('Username: ' + bot.user.name)
@@ -71,7 +76,7 @@ async def on_ready():
     log.info('Logged in as:\nUsername: {0.user.name}\nID: {0.user.id}\nDebug: {1}\n------'.format(bot, str(debug_mode)))
     if not hasattr(bot, 'uptime'):
         bot.uptime = bot_start_time
-    squid_bot_game = discord.Game(name='?help', url=github_url, type=0)
+    squid_bot_game = discord.Game(name='?help', url=github_url, type=1)
     await bot.change_presence(game=squid_bot_game, status=discord.Status.online, afk=False)
 
 @bot.event
@@ -92,6 +97,10 @@ async def on_command(command, ctx):
 
 @bot.event
 async def on_message(message):
+    server = Server.objects.get_or_create(server_id=message.server.id)
+    channel = Channel.objects.get_or_create(channel_id=message.channel.id, server=server)
+    user = DiscordUser.objects.get_or_create(user_id=message.author.id)
+    server_user = ServerUser.objects.get_or_create(user=user, server=server)
     if message.author.bot:
         return
 
